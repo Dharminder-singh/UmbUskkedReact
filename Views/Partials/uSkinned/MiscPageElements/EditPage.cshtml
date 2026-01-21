@@ -1,0 +1,55 @@
+﻿@inherits UmbracoViewPage<SiteBuilderBaseViewModel>
+@using USNSiteBuilder.Core.Models
+@using USNSiteBuilder.Core.Extensions
+@using Umbraco.Cms.Core.Security
+@using USNSiteBuilder.Core.Interfaces
+@using System.Threading
+
+@inject ISiteBuilderUserAccessor _siteBuilderUserAccessor
+
+@{
+    UsnwebsiteConfigurationSection configuration = (UsnwebsiteConfigurationSection)Model.ConfigurationNode;
+
+    if (!UmbracoContext.InPreviewMode && !configuration.HideContentEditLink && _siteBuilderUserAccessor.DisplayEditLink())
+    {
+        var culture = Thread.CurrentThread.CurrentUICulture.Name;
+
+
+        <!-- Edit page -->
+        <div id="USN_EditPage">
+        <div class="usn_edit-page position-fixed top-50 start-0 translate-middle-y z-3">
+            <a href="/umbraco#/content/content/edit/@(Model.Id)?mculture=@(culture)" target="_blank" class="d-flex align-items-center text-center justify-content-center" title="Edit this page">
+                <span></span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#000" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                </svg>
+                <span aria-hidden="true" class="d-none">Edit this Page in the CMS</span>
+            </a>
+        </div>
+        <!--// Edit page -->
+        <style>
+        .usn_edit-page > a {
+            background: #fff;
+            width: 50px; height: 50px;
+            border: 1px solid rgba(28, 38, 79, .1); 
+            transform: translateY(-50%);
+            transition: all 0.35s ease-in-out 0s;
+        }
+        .usn_edit-page > a:hover {
+            background: #eee;
+        }
+        html[dir="ltr"] .usn_edit-page > a {
+            box-shadow: 2px 0 4px rgba(0, 0, 0, .05);
+            border-radius: 0 3px 3px 0;
+            border-left: 0 none;
+        }
+        html[dir="rtl"] .usn_edit-page > a {
+            box-shadow: -4px 0 4px rgba(0, 0, 0, .05);
+            border-radius: 3px 0 0 3px;
+            border-right: 0 none;
+        }
+        </style>
+        </div>
+    }
+}

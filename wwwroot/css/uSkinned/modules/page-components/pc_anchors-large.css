@@ -1,0 +1,133 @@
+/*  
+---------------------------------------------------
+Anchors - Large Breakpoint
+---------------------------------------------------  
+*/
+
+.component.usn_cmp_anchornavigation { 
+    padding-bottom:0!important;
+}
+.component.usn_cmp_anchornavigation nav:not(.tab-basic) { 
+    padding-bottom:var(--base-half-spacing);
+}
+
+
+/* 
+---------------------------------------------------
+Anchors Styles
+
+Basic
+Buttons
+Underline
+Linethrough
+---------------------------------------------------  
+*/
+
+
+/*	
+--------------------------------------------------
+Tab Basic Style 
+-------------------------------------------------- 
+*/
+
+
+/*	
+--------------------------------------------------
+Tab Button Style 
+-------------------------------------------------- 
+*/
+
+
+/*	
+--------------------------------------------------
+Tab Underline Style
+-------------------------------------------------- 
+*/
+
+
+/*	
+--------------------------------------------------
+Tab Linethrough Style
+-------------------------------------------------- 
+*/
+
+
+/* 
+---------------------------------------------------
+Anchors Expand
+---------------------------------------------------  
+*/
+
+.component.usn_cmp_anchornavigation .expand-anchor { 
+    display:none;
+}
+
+/* 
+---------------------------------------------------
+Anchors Horizontal 
+Horizontally scrollable anchors on a large screen when lots are added
+---------------------------------------------------  
+*/
+
+.component.usn_cmp_anchornavigation {
+    overflow-x:auto;
+}
+.component.usn_cmp_anchornavigation::-webkit-scrollbar {
+    display: none;
+}
+.component.usn_cmp_anchornavigation ul.nav {
+    flex-wrap:nowrap;
+    margin-right: calc(-.5 * var(--bs-gutter-x));
+    margin-left: calc(-.5 * var(--bs-gutter-x));
+}
+
+.component.usn_cmp_anchornavigation ul.nav.justify-content-center { 
+    justify-content: flex-start!important;
+}
+
+html[dir="ltr"] .component.usn_cmp_anchornavigation ul.nav.justify-content-center li:first-child {
+	margin-left: auto !important;
+}
+html[dir="ltr"] .component.usn_cmp_anchornavigation ul.nav.justify-content-center li:last-child {
+	margin-right: auto !important;
+}
+html[dir="rtl"] .component.usn_cmp_anchornavigation ul.nav.justify-content-center li:first-child {
+	margin-right: auto !important;
+}
+html[dir="rtl"] .component.usn_cmp_anchornavigation ul.nav.justify-content-center li:last-child {
+	margin-left: auto !important;
+}
+
+.component.usn_cmp_anchornavigation ul.nav.justify-content-end { 
+    justify-content: flex-start!important;
+}
+
+html[dir="ltr"] .component.usn_cmp_anchornavigation ul.nav.justify-content-end li:first-child {
+	margin-left: auto !important;
+}
+html[dir="ltr"] .component.usn_cmp_anchornavigation ul.nav.justify-content-end li:last-child {
+	margin-right: 0 !important;
+}
+html[dir="rtl"] .component.usn_cmp_anchornavigation ul.nav.justify-content-end li:first-child {
+	margin-right: auto !important;
+}
+html[dir="rtl"] .component.usn_cmp_anchornavigation ul.nav.justify-content-end li:last-child {
+	margin-left: 0 !important;
+}
+
+html[dir="ltr"] .component.usn_cmp_anchornavigation ul.nav li:first-child {
+	padding-left: calc(var(--bs-gutter-x) * .5);
+}
+html[dir="ltr"] .component.usn_cmp_anchornavigation ul.nav li:last-child {
+	padding-right: calc(var(--bs-gutter-x) * .5);
+}
+html[dir="rtl"] .component.usn_cmp_anchornavigation ul.nav li:first-child {
+	padding-right: calc(var(--bs-gutter-x) * .5);
+}
+html[dir="rtl"] .component.usn_cmp_anchornavigation ul.nav li:last-child {
+	padding-left: calc(var(--bs-gutter-x) * .5);
+}
+
+.component.usn_cmp_anchornavigation ul.nav a {
+	text-wrap:nowrap;
+}

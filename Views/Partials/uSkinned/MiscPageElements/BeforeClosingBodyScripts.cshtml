@@ -1,0 +1,13 @@
+﻿@inherits UmbracoViewPage<SiteBuilderBaseViewModel>
+@using USNSiteBuilder.Core.Models
+@{
+    UsnglobalSettings globalSettings = (UsnglobalSettings)Model.GlobalSettings;
+    if (!Model.Value<bool>("disableGlobalBeforeClosingBodyScripts"))
+    {
+        @Html.Raw(globalSettings.BeforeClosingBodyScripts)
+    }
+    if (Model.HasValue("pageBeforeClosingBodyScripts"))
+    {
+        @Html.Raw(Model.Value<string>("pageBeforeClosingBodyScripts"))
+    }
+}

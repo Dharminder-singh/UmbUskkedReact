@@ -1,0 +1,208 @@
+﻿@inherits UmbracoViewPage<SiteBuilderBaseViewModel>
+@using USNSiteBuilder.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@using USNSiteBuilder.Core.Interfaces 
+@inject ISiteBuilderService _siteBuilderService
+@inject ISiteBuilderPreviewService _siteBuilderPreviewService
+@{
+    UsnglobalSettings globalSettings = (UsnglobalSettings)Model.GlobalSettings;
+    Usnstyle websiteStyle = (Usnstyle)Model.WebsiteStyle;
+
+    string breakPoint = websiteStyle.StyleSpacing.headerBreakpoint.ToString();
+
+    int globalPodsCount = 0;
+    int pagePodsCount = 0;
+    int currentBlockIndex = 0;
+    string uniqueID = Guid.NewGuid().ToString();
+
+    var blockPreviewInfo = _siteBuilderPreviewService.GetBlockPreviewInfo();
+
+    string pageLayout = Model.HasValue("pageLayout") ? Model.Value<string>("pageLayout") ?? "pageLayoutFull" : "pageLayoutFull";
+    string itemClass = "swp-item";
+
+    var globalPods = !Model.Value<bool>("hideDefaultPods") && globalSettings.Value<BlockListModel>("defaultPods") != null 
+    ? globalSettings.Value<BlockListModel>("defaultPods")?.Where(x => !x.Settings.Value<bool>("hideFromWebsite")).ToList() 
+    : new List<BlockListItem>();
+
+    globalPodsCount = globalPods?.Count() ?? 0;
+
+    var pagePods = Model.Value<BlockListModel>("pagePods") != null 
+        ? Model.Value<BlockListModel>("pagePods")?.Where(x => !x.Settings.Value<bool>("hideFromWebsite")).ToList() 
+        : new List<BlockListItem>();
+
+    pagePodsCount = pagePods?.Count() ?? 0;
+
+    if ((globalPods != null && globalPods.Any()) || (pagePods != null && pagePods.Any()) || (blockPreviewInfo.PreviewMode && globalPodsCount == 0 && blockPreviewInfo.ContentField == "defaultPods") ||
+    (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "defaultPods" && globalPodsCount > 0 && blockPreviewInfo.ContentIndex > globalPodsCount - 1) || 
+    (blockPreviewInfo.PreviewMode && pagePodsCount == 0 && blockPreviewInfo.ContentField == "pagePods") ||
+    (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "pagePods" && pagePodsCount > 0 && blockPreviewInfo.ContentIndex > pagePodsCount - 1))
+    {
+        //Get preview anchor if available
+        if(blockPreviewInfo.PreviewMode && (blockPreviewInfo.ContentField == "defaultPods" || blockPreviewInfo.ContentField == "pagePods"))
+        {
+            @Html.Raw(_siteBuilderPreviewService.GetPreviewAnchor(blockPreviewInfo.Anchor,breakPoint))
+        }
+        <!-- Pods -->
+        <div class="swp">
+
+            @if (pageLayout == "pageLayoutFull")
+            {
+                itemClass += " items-3 col-12";
+
+                @:<section class="content component usn_cmp_pods swp-wide base-bg"><div class="container"><div class="component-main row listing listing_basic-grid listing-pods">
+            }
+            else
+            {
+                @:<div class="listing listing-pods">
+            }
+
+            <!-- This will add a new block if the block list is empty.-->
+            @if (blockPreviewInfo.PreviewMode && globalPodsCount == 0 && blockPreviewInfo.ContentField == "defaultPods")
+            {
+                await OutputPreviewPod(itemClass, uniqueID);
+            }
+
+            @if(globalPods != null && globalPods.Any())
+            {
+                foreach (var item in globalPods)
+                {
+                    //Replace a block being edited with its preview version
+                    if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "defaultPods" && blockPreviewInfo.ContentUdi == item.ContentUdi.ToString())
+                    {
+                        await OutputPreviewPod(itemClass, uniqueID);
+                    }
+                    //Insert a new block before a current block
+                    else if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "defaultPods" && blockPreviewInfo.ContentUdi != item.ContentUdi.ToString() && blockPreviewInfo.ContentIndex == currentBlockIndex)
+                    {
+                        await OutputPreviewPod(itemClass, uniqueID);
+
+                        await OutputPod(item, itemClass, uniqueID);
+                    }
+                    else{
+                        await OutputPod(item, itemClass, uniqueID);
+                    }
+                    currentBlockIndex++;
+                }
+            }
+
+            @{
+                currentBlockIndex = 0;
+            }
+
+            @if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "defaultPods" && globalPodsCount > 0 && blockPreviewInfo.ContentIndex > globalPodsCount - 1)
+            {
+                await OutputPreviewPod(itemClass, uniqueID);
+            }
+
+             <!-- This will add a new block if the block list is empty.-->
+            @if (blockPreviewInfo.PreviewMode && pagePodsCount == 0 && blockPreviewInfo.ContentField == "pagePods")
+            {
+                await OutputPreviewPod(itemClass, uniqueID);
+            }
+
+            @if(pagePods != null && pagePods.Any())
+            {
+                foreach (var item in pagePods)
+                {
+                    //Replace a block being edited with its preview version
+                    if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "pagePods" && blockPreviewInfo.ContentUdi == item.ContentUdi.ToString())
+                    {
+                        await OutputPreviewPod(itemClass, uniqueID);
+                    }
+                    //Insert a new block before a current block
+                    else if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "pagePods" && blockPreviewInfo.ContentUdi != item.ContentUdi.ToString() && blockPreviewInfo.ContentIndex == currentBlockIndex)
+                    {
+                        await OutputPreviewPod(itemClass, uniqueID);
+
+                        await OutputPod(item, itemClass, uniqueID);
+                    }
+                    else{
+                        await OutputPod(item, itemClass, uniqueID);
+                    }
+                    currentBlockIndex++;
+                }
+            }
+            
+            @if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == "pagePods" && pagePodsCount > 0 && blockPreviewInfo.ContentIndex > pagePodsCount - 1)
+            {
+                await OutputPreviewPod(itemClass, uniqueID);
+            }
+
+            @if (pageLayout == "pageLayoutFull")
+            {
+                @:</div></div></section>
+            }
+            else
+            {
+                @:</div>
+            }
+
+        </div>
+        <!--// Pods -->
+    }
+}
+
+@functions
+{ 
+    private async Task OutputPod(BlockListItem item, string itemClass, string uniqueID)
+    {
+        if (item?.ContentUdi != null)
+        {
+            var podItem = new SiteBuilderBlock(Model, item);
+            string blockViewName = _siteBuilderService.GetBlockViewName(item.Content.ContentType.Alias);
+
+            if (blockViewName == "RelatedContent" || blockViewName == "TextImage"
+                    || blockViewName == "ReusablePods")
+            {
+                @await Html.PartialAsync($"{Model.ThemeFolder}/Blocks/{blockViewName}", podItem, new ViewDataDictionary(ViewData) { { "blockLocation", "pod" }, { "backgroundColorLabel", "base" }, { "itemClass", itemClass }, { "uniqueID", uniqueID } });
+            }
+            else
+            {
+                var itemCommonBlockSettings = (IUsn_Cmp_CommonBlockSettings)item.Settings;
+
+                string podStyle = "usn_pod_" + _siteBuilderService.GetBlockStyleName(podItem.BlockContent.ContentType.Alias);
+
+                <div class="item @podStyle @itemClass @itemCommonBlockSettings.CustomClasses">
+                    <div class="inner">
+                         @await Html.PartialAsync($"{Model.ThemeFolder}/Blocks/{blockViewName}", podItem, new ViewDataDictionary(ViewData) { { "blockLocation", "pod" }, { "backgroundColorLabel", "base" }, { "uniqueID", uniqueID } })
+                    </div>
+                </div>
+            }
+        }
+    }
+
+    private async Task OutputPreviewPod(string itemClass, string uniqueID)
+    {
+        var previewBlock = _siteBuilderPreviewService.GetPreviewBlock(Model);
+
+        if (previewBlock != null)
+        {
+            if (!previewBlock.BlockSettings.Value<bool>("hideFromWebsite"))
+            { 
+                string blockViewName = _siteBuilderService.GetBlockViewName(previewBlock.BlockContent.ContentType.Alias);
+
+                if (blockViewName == "RelatedContent" || blockViewName == "TextImage"
+                        || blockViewName == "ReusablePods")
+                {
+                    @await Html.PartialAsync($"{Model.ThemeFolder}/Blocks/{blockViewName}", previewBlock, new ViewDataDictionary(ViewData) { { "blockLocation", "pod" }, { "backgroundColorLabel", "base" }, { "itemClass", itemClass }, { "uniqueID", uniqueID }});
+                }
+                else
+                {
+                    var itemCommonBlockSettings = (IUsn_Cmp_CommonBlockSettings)previewBlock.BlockSettings;
+
+                    string podStyle = "usn_pod_" + _siteBuilderService.GetBlockStyleName(previewBlock.BlockContent.ContentType.Alias);
+
+                    <div class="item @podStyle @itemClass @itemCommonBlockSettings.CustomClasses">
+                        <div class="inner">
+                            @await Html.PartialAsync($"{Model.ThemeFolder}/Blocks/{blockViewName}", previewBlock, new ViewDataDictionary(ViewData) { { "blockLocation", "pod" }, { "backgroundColorLabel", "base" }, { "uniqueID", uniqueID }})
+                        </div>
+                    </div>
+                }
+            }
+        }
+        else
+        {
+            @Html.Raw(_siteBuilderPreviewService.GetErrorMessage())
+        }
+    }
+}

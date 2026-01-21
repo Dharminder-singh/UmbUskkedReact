@@ -1,0 +1,45 @@
+﻿/*  
+---------------------------------------------------
+Header small screens 01
+---------------------------------------------------  
+*/
+
+body.header-01-sm header#site-header #logo {
+    order: 1;
+    align-self: start;
+}
+
+body.header-01-sm header#site-header nav.shopping-cart {
+    order: 2;
+    right: var(--expand-nav-width);
+    width: var(--expand-nav-width);
+}
+
+body.header-01-sm header#site-header nav.main,
+body.header-01-sm header#site-header nav.cta-links,
+body.header-01-sm header#site-header .site-search,
+body.header-01-sm header#site-header nav.secondary {
+    width: 100%;
+}
+
+body.header-01-sm header#site-header nav.main {
+    order: 3;
+}
+
+body.header-01-sm header#site-header nav.cta-links,
+body.header-01-sm header#site-header .site-search,
+body.header-01-sm header#site-header nav.secondary {
+    padding: var(--base-half-spacing) var(--base-half-spacing) 0;
+}
+
+body.header-01-sm header#site-header nav.cta-links {
+    order: 4;
+}
+
+body.header-01-sm header#site-header .site-search {
+    order: 5;
+}
+
+body.header-01-sm header#site-header nav.secondary {
+    order: 6;
+}

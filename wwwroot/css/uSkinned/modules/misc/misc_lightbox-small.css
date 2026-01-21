@@ -1,0 +1,12 @@
+﻿
+
+/* Mega menu - Modal links inside Main Navigation */
+ 
+.mega-menu-modal {
+	padding-top: var(--small-header);
+}
+
+.mega-menu-modal .modal-backdrop,
+.mega-menu-modal .modal {
+	top: var(--small-header);
+}

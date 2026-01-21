@@ -1,0 +1,423 @@
+/* 	
+-------------------------------------------------- 
+Images
+-------------------------------------------------- 
+*/
+
+.image {
+	position: relative;
+	overflow: hidden;
+	transition: opacity 0.4s ease-in-out 0s;
+}
+
+.blur-up-lazy-loading .image img.lazyload:not(.lazyloaded),
+.blur-up-lazy-loading .image img.lazyloading:not(.lazyloaded),
+.blur-up-lazy-loading .image.background-image.lazyload:not(.lazyloaded),
+.blur-up-lazy-loading .image.background-image.lazyloading:not(.lazyloaded) {
+	filter: blur(5px);
+	transform: scale(1.025);
+}
+
+img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    transform: scale(1);
+    transform-origin: center;
+}
+
+.max-width-images img,
+.max-width-images .image img { 
+    max-width: auto;
+}
+
+.image img,
+.image.background-image,
+.image.icon-image {
+    transform: scale(1);
+    transform-origin: center;
+}
+
+.image img,
+.image.icon-image {
+    transition: all 0.4s ease-in-out 0s;
+}
+
+.image.background-image {
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+
+	transition: opacity 0.4s ease-in-out 0s, transform 0.4s ease-in-out 0s;
+}
+
+.image.background-image.body-background-image,
+.image.background-image.header-background-image,
+.image.background-image.footer-background-image,
+.image.background-image.component-background-image {
+    position:absolute; top:0; right:0; bottom:0; left:0; z-index:0;
+    width:100%; height:100%; 
+}
+.image.background-image.component-background-image + .component-inner { 
+    position: relative; z-index: 1;
+}
+
+.image.lazyload img,
+.image.background-image.lazyload {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+
+/* IMAGE TRANSITIONS */
+
+.image,
+.image.video {
+    overflow: hidden;
+    padding: 0;
+}
+
+.image a:hover img,
+a:hover .image img,
+.item a:hover .image.background-image {
+    transform: scale(1.05);
+}
+
+.no-zoom_hover .image a:hover img,
+.no-zoom_hover a:hover .image img,
+.no-zoom_hover .item a:hover .image.background-image {
+    transform: scale(1);
+}
+
+.reverse-zoom_hover .image a:hover img,
+.reverse-zoom_hover a:hover .image img,
+.reverse-zoom_hover .item a:hover .image.background-image {
+    transform: scale(0.95);
+}
+
+/*
+.item.item_overlay a:hover { 
+    transform: scale(0.975);
+    box-shadow: 0 0 5px rgba(@true-black, 0.2);
+}
+*/
+
+.image .caption {
+    font-size: 85%;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.image .caption:not(.caption-below) {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 101;
+    padding: 5px 10px 7px;
+    color: rgba(var(--true-white), 1);
+    background-color: rgba(var(--true-black), 0.6);
+}
+
+.image.rounded-circle .caption:not(.caption-below) {
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.image .caption.caption-below {
+    padding: var(--base-half-spacing) 0 0;
+    color: rgba(var(--base-text), 1);
+}
+
+
+i.fa,
+i.before {
+    margin-right: 5px;
+}
+
+i.fa.after,
+i.after {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+i.fa.before.after,
+i.before.after {
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+
+/* 	
+-------------------------------------------------- 
+RTE Images
+-------------------------------------------------- 
+*/
+
+.img-max { 
+    display:block;
+}
+.img-max:not(.image) {
+    margin: 8px 0 var(--base-spacing) 0;
+}
+.img-max:first-child {
+	margin-top:0;
+}
+
+.img-max img { 
+    max-width:100%; width:revert-layer;
+}
+
+.text-center .img-max,
+.text-center .img-max img {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+html[dir="ltr"] .text-right .img-max,
+html[dir="ltr"] .text-right .img-max img {
+    margin-left: auto;
+}
+html[dir="rtl"] .text-right .img-max,
+html[dir="rtl"] .text-right .img-max img {
+    margin-right: auto;
+}
+
+.img-full { 
+    display:block;
+    margin:8px 0 var(--base-spacing) 0;
+}
+.img-full:first-child { 
+	margin-top:0;
+}
+.img-full img { 
+    max-width:100%; width:100%;
+}
+
+.img-left { 
+    float:left; display:block; max-width:50%; width:revert-layer;
+    margin:8px var(--base-spacing) var(--base-spacing) 0;
+}
+.img-left:first-child {
+	margin-top: 0;
+}
+/*
+.img-left > img { }*/
+
+.img-right { 
+    float:right; display:block; max-width:50%; width:revert-layer;
+    margin:8px 0 var(--base-spacing) var(--base-spacing);
+}
+.img-right:first-child {
+	margin-top: 0;
+}
+/*
+.img-right > img { }*/
+
+/*
+.img-rounded { }*/
+
+.img-rounded img { 
+    border-radius: var(--base-border-radius);
+}
+
+/*
+.img-circle { }*/
+
+.img-rounded-circle img { 
+    border-radius: 50%;
+}
+
+
+/* Image errors */
+
+.image .image-error::after,
+.image.error-background-image::after { 
+    content: attr(data-error-title);
+    position: absolute;
+    top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    font-size: 14px; line-height: 18px;
+    color: #000;
+    text-align: center; text-transform: uppercase;
+}
+
+
+
+/* 	
+-------------------------------------------------- 
+Image Opacity 
+
+	Image opacity when overlay is set
+	Both initial and hover states
+	Increments of 10%	
+-------------------------------------------------- 
+*/
+
+.image.image-opacity-0,
+a:hover .image.image_hover-opacity-0,
+a:hover .image.image_hover-opacity-0,
+a:focus .image.image_hover-opacity-0,
+a:active .image.image_hover-opacity-0,
+a:focus-visible .image.image_hover-opacity-0 {
+	opacity: 0;
+}
+.image.image-opacity-5,
+a:hover .image.image_hover-opacity-5,
+a:hover .image.image_hover-opacity-5,
+a:focus .image.image_hover-opacity-5,
+a:active .image.image_hover-opacity-5,
+a:focus-visible .image.image_hover-opacity-5 {
+	opacity: 0.05;
+}
+.image.image-opacity-10,
+a:hover .image.image_hover-opacity-10,
+a:hover .image.image_hover-opacity-10,
+a:focus .image.image_hover-opacity-10,
+a:active .image.image_hover-opacity-10,
+a:focus-visible .image.image_hover-opacity-10 {
+	opacity: 0.1;
+}
+.image.image-opacity-15,
+a:hover .image.image_hover-opacity-15,
+a:hover .image.image_hover-opacity-15,
+a:focus .image.image_hover-opacity-15,
+a:active .image.image_hover-opacity-15,
+a:focus-visible .image.image_hover-opacity-15 {
+	opacity: 0.15;
+}
+.image.image-opacity-20,
+a:hover .image.image_hover-opacity-20,
+a:hover .image.image_hover-opacity-20,
+a:focus .image.image_hover-opacity-20,
+a:active .image.image_hover-opacity-20,
+a:focus-visible .image.image_hover-opacity-20 {
+	opacity: 0.2;
+}
+.image.image-opacity-25,
+a:hover .image.image_hover-opacity-25,
+a:hover .image.image_hover-opacity-25,
+a:focus .image.image_hover-opacity-25,
+a:active .image.image_hover-opacity-25,
+a:focus-visible .image.image_hover-opacity-25 {
+	opacity: 0.25;
+}
+.image.image-opacity-30,
+a:hover .image.image_hover-opacity-30,
+a:hover .image.image_hover-opacity-30,
+a:focus .image.image_hover-opacity-30,
+a:active .image.image_hover-opacity-30,
+a:focus-visible .image.image_hover-opacity-30 {
+	opacity: 0.3;
+}
+.image.image-opacity-35,
+a:hover .image.image_hover-opacity-35,
+a:hover .image.image_hover-opacity-35,
+a:focus .image.image_hover-opacity-35,
+a:active .image.image_hover-opacity-35,
+a:focus-visible .image.image_hover-opacity-35 {
+	opacity: 0.35;
+}
+.image.image-opacity-40,
+a:hover .image.image_hover-opacity-40,
+a:hover .image.image_hover-opacity-40,
+a:focus .image.image_hover-opacity-40,
+a:active .image.image_hover-opacity-40,
+a:focus-visible .image.image_hover-opacity-40 {
+	opacity: 0.4;
+}
+.image.image-opacity-45,
+a:hover .image.image_hover-opacity-45,
+a:hover .image.image_hover-opacity-45,
+a:focus .image.image_hover-opacity-45,
+a:active .image.image_hover-opacity-45,
+a:focus-visible .image.image_hover-opacity-45 {
+	opacity: 0.45;
+}
+.image.image-opacity-50,
+a:hover .image.image_hover-opacity-50,
+a:hover .image.image_hover-opacity-50,
+a:focus .image.image_hover-opacity-50,
+a:active .image.image_hover-opacity-50,
+a:focus-visible .image.image_hover-opacity-50 {
+	opacity: 0.5;
+}
+.image.image-opacity-55,
+a:hover .image.image_hover-opacity-55,
+a:hover .image.image_hover-opacity-55,
+a:focus .image.image_hover-opacity-55,
+a:active .image.image_hover-opacity-55,
+a:focus-visible .image.image_hover-opacity-55 {
+	opacity: 0.55;
+}
+.image.image-opacity-60,
+a:hover .image.image_hover-opacity-60,
+a:hover .image.image_hover-opacity-60,
+a:focus .image.image_hover-opacity-60,
+a:active .image.image_hover-opacity-60,
+a:focus-visible .image.image_hover-opacity-60 {
+	opacity: 0.6;
+}
+.image.image-opacity-65,
+a:hover .image.image_hover-opacity-65,
+a:hover .image.image_hover-opacity-65,
+a:focus .image.image_hover-opacity-65,
+a:active .image.image_hover-opacity-65,
+a:focus-visible .image.image_hover-opacity-65 {
+	opacity: 0.65;
+}
+.image.image-opacity-70,
+a:hover .image.image_hover-opacity-70,
+a:hover .image.image_hover-opacity-70,
+a:focus .image.image_hover-opacity-70,
+a:active .image.image_hover-opacity-70,
+a:focus-visible .image.image_hover-opacity-70 {
+	opacity: 0.7;
+}
+.image.image-opacity-75,
+a:hover .image.image_hover-opacity-75,
+a:hover .image.image_hover-opacity-75,
+a:focus .image.image_hover-opacity-75,
+a:active .image.image_hover-opacity-75,
+a:focus-visible .image.image_hover-opacity-75 {
+	opacity: 0.75;
+}
+.image.image-opacity-80,
+a:hover .image.image_hover-opacity-80,
+a:hover .image.image_hover-opacity-80,
+a:focus .image.image_hover-opacity-80,
+a:active .image.image_hover-opacity-80,
+a:focus-visible .image.image_hover-opacity-80 {
+	opacity: 0.8;
+}
+.image.image-opacity-85,
+a:hover .image.image_hover-opacity-85,
+a:hover .image.image_hover-opacity-85,
+a:focus .image.image_hover-opacity-85,
+a:active .image.image_hover-opacity-85,
+a:focus-visible .image.image_hover-opacity-85 {
+	opacity: 0.85;
+}
+.image.image-opacity-90,
+a:hover .image.image_hover-opacity-90,
+a:hover .image.image_hover-opacity-90,
+a:focus .image.image_hover-opacity-90,
+a:active .image.image_hover-opacity-90,
+a:focus-visible .image.image_hover-opacity-90 {
+	opacity: 0.9;
+}
+.image.image-opacity-95,
+a:hover .image.image_hover-opacity-95,
+a:hover .image.image_hover-opacity-95,
+a:focus .image.image_hover-opacity-95,
+a:active .image.image_hover-opacity-95,
+a:focus-visible .image.image_hover-opacity-95 {
+	opacity: 0.95;
+}
+.image.image-opacity-100,
+a:hover .image.image_hover-opacity-100,
+a:focus .image.image_hover-opacity-100,
+a:active .image.image_hover-opacity-100,
+a:focus-visible .image.image_hover-opacity-100 {
+	opacity: 1;
+}

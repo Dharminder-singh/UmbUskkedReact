@@ -1,0 +1,574 @@
+﻿@inherits UmbracoViewPage<SiteBuilderBlock>
+@using USNSiteBuilder.Core.Models
+@using USNSiteBuilder.Core.Interfaces
+@using USNSiteBuilder.Core.Extensions
+@using Microsoft.Extensions.Options
+@inject ISiteBuilderService _siteBuilderService
+@inject IOptions<USNAppSettings> _appSettings
+@{
+    //Available as Component Block and Split Component Block types
+
+    var content = (IUsn_Cmp_Gallery_Content)Model.BlockContent;
+
+    //Settings taken from compositions common to all block types
+    var uniqueSettings = (IUsn_Cmp_Gallery_Settings)Model.BlockSettings;
+    var animateSettings = (IUsn_Cmp_AnimateSettings)Model.BlockSettings;
+
+    bool disableModalLinks = Convert.ToBoolean(ViewData["disableModalLinks"]);
+
+    var galleryItems = content.ImageVideo.Where(x => !x.Settings.Value<bool>("hideFromWebsite"));
+
+    //Video formats accepted when media folder selected
+    string[] videoExtensions = { "mp4" };
+
+    if (galleryItems.HasValue() && galleryItems.Any())
+    {
+        Usnstyle websiteStyle = (Usnstyle)Model.BaseModel.WebsiteStyle;
+        AnimationSettings animation = _siteBuilderService.GetAnimationSettings(animateSettings.Animate, animateSettings.AnimationDelay, animateSettings.AnimationDuration, animateSettings.AnimationStyle);
+        string uniqueID = Guid.NewGuid().ToString();
+        string listSpacingClass = uniqueSettings.RemoveItemSpacing ? "listing_no-spacing" : String.Empty;
+
+         //Since this is a new feature there will be no value in database if not set by a user. Check if null and set to default value
+        decimal imageOpacity = Model.BlockSettings.HasValue("imageOpacity") ? uniqueSettings.ImageOpacity : 100;
+        decimal imageOpacityOnHover = Model.BlockSettings.HasValue("imageOpacityOnHover") ? uniqueSettings.ImageOpacityOnHover : 40;
+        string opacityClass = $"image-opacity-{imageOpacity} image_hover-opacity-{imageOpacityOnHover}";
+
+        string maxWidthClass = Model.BlockSettings.Value<SiteBuilderPixelsPercentage>("maximumImageWidth")?.enabled == true ? "img-max" : String.Empty;
+        string maxWidthStyle = Model.BlockSettings.Value<SiteBuilderPixelsPercentage>("maximumImageWidth")?.enabled == true ? $"style=\"max-width: {Model.BlockSettings.Value<SiteBuilderPixelsPercentage>("maximumImageWidth").numericValue}px;\"" : String.Empty;
+
+        bool webPEnabledAppSettings = _appSettings.Value.WebPEnabled;
+        CarouselSettings carouselSettings = _siteBuilderService.GetCarouselSettings(false, uniqueSettings.ItemsPerRow, uniqueSettings.EnableCarousel, uniqueSettings.AutoRotateSpeed, uniqueSettings.ShowDots, uniqueSettings.ShowArrows);
+        ImageSettings imageSettings = _siteBuilderService.GetImageSettings(uniqueSettings.ImageStyle, uniqueSettings.BoxPad);
+        galleryItems = content.EnableRandomOrder ? galleryItems.Randomize() : galleryItems;
+
+        <div class="component-main row @carouselSettings.CarouselRowClass listing @listSpacingClass listing_basic-grid listing_gallery" @Html.Raw(carouselSettings.SlickAttributes)>
+
+            @foreach (var galleryItem in galleryItems)
+            {
+                string lightWindow = String.Empty;
+                string title = String.Empty;
+                string footer = String.Empty;
+                string videoCircleClass = imageSettings.CircleClass;
+
+                var itemMinSettings = (IUsn_Cmp_CommonBlockSettings)galleryItem.Settings;
+
+                string anchor = _siteBuilderService.MakeAnchorSafe(itemMinSettings.AnchorName);
+
+                if (galleryItem.Content.ContentType.Alias == Usn_Cbi_GalleryMediaFolder.ModelTypeAlias)
+                {
+                    Usn_Cbi_GalleryMediaFolder galleryMediaFolder = (Usn_Cbi_GalleryMediaFolder)galleryItem.Content;
+                    Usn_Cbis_GalleryMediaFolder uniqueItemSettings = (Usn_Cbis_GalleryMediaFolder)galleryItem.Settings;
+
+                    var mediaFolder = galleryMediaFolder.MediaFolder;
+
+                    await OutputMediaFolder(galleryMediaFolder.MediaFolder, carouselSettings.ItemsClass, imageSettings, animation, galleryMediaFolder.DisableLightWindow, uniqueID, Model.BaseModel.ThemeFolder, uniqueItemSettings.IncludeChildFolders, itemMinSettings, webPEnabledAppSettings, content.EnableRandomOrder, opacityClass, maxWidthClass, maxWidthStyle, anchor);
+                }
+                else if (galleryItem.Content.ContentType.Alias == Usn_Cbi_GalleryMultipleImages.ModelTypeAlias)
+                {
+                    Usn_Cbi_GalleryMultipleImages multipleImagesContent = (Usn_Cbi_GalleryMultipleImages)galleryItem.Content;
+                    Usn_Cbis_GalleryMultipleImages uniqueItemSettings = (Usn_Cbis_GalleryMultipleImages)galleryItem.Settings;
+
+                    await OutputMultipleImages(multipleImagesContent.Images, carouselSettings.ItemsClass, imageSettings, animation, multipleImagesContent.DisableLightWindow, uniqueID, Model.BaseModel.ThemeFolder, uniqueItemSettings.IncludeChildFolders, itemMinSettings, webPEnabledAppSettings, content.EnableRandomOrder, opacityClass, maxWidthClass, maxWidthStyle, anchor);
+                }
+                else if (galleryItem.Content.ContentType.Alias == Usn_Cbi_GalleryImage.ModelTypeAlias)
+                {
+                    Usn_Cbi_GalleryImage galleryImage = (Usn_Cbi_GalleryImage)galleryItem.Content;
+
+                    if (!disableModalLinks && !galleryImage.DisableLightWindow)
+                    {
+                        lightWindow = " aria-label=\"" + Umbraco.GetDictionaryValue("USN Aria Open Image") + "\" aria-haspopup=\"dialog\" role=\"button\" data-toggle=\"lightbox\" data-type=\"image\" data-gallery=\"galleryname_" + uniqueID + "\"";
+
+                        if (galleryImage.LightWindowTitle.HasValue())
+                        {
+                            title = "data-title=\"" + galleryImage.LightWindowTitle + "\"";
+                        }
+
+                        if (galleryImage.LightWindowFooter.HasValue())
+                        {
+                            footer = "data-footer=\"" + galleryImage.LightWindowFooter + "\"";
+                        }
+                    }
+
+                    if (galleryImage.Image != null)
+                    {
+                        string linkUrl = String.Empty;
+                        string linkTarget = String.Empty;
+                        string linkTitle = String.Empty;
+                        bool displayLink =  _siteBuilderService.DisplayLink(galleryImage.ImageLink, disableModalLinks);
+
+                        if (galleryImage.DisableLightWindow && displayLink && galleryImage.ImageLink.HasValue())
+                        {
+                            linkUrl = galleryImage.ImageLink.link.LinkUrl;
+                            linkTarget = galleryImage.ImageLink.link.LinkTarget;
+                            linkTitle = galleryImage.ImageLink.link.LinkTitle;
+                        }
+                        else if (!disableModalLinks && !galleryImage.DisableLightWindow)
+                        {
+                            linkUrl = galleryImage.Image.Url();
+                        }
+
+                        <div class="item @imageSettings.CircleClass @carouselSettings.ItemsClass @animation.AnimationClass @itemMinSettings.CustomClasses" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration">
+                        
+                            @if (linkUrl != String.Empty)
+                            {
+                                @:<a href="@linkUrl" @Html.Raw(title) @Html.Raw(footer) @Html.Raw(linkTarget) @Html.Raw(lightWindow) @Html.Raw(linkTitle)>
+                                }   
+                            
+                                <div class="image @maxWidthClass @opacityClass @imageSettings.CircleClass" @Html.Raw(maxWidthStyle)>
+
+                                    @await Html.PartialAsync(Model.BaseModel.ThemeFolder + "/MiscPageElements/Image", galleryImage.Image, new ViewDataDictionary(ViewData) { { "imageSettings", imageSettings }, { "themeFolder", Model.BaseModel.ThemeFolder } })
+
+                                    @if (galleryImage.ImageCaption.HasValue())
+                                    {
+                                        <div class="caption">@Html.Raw(galleryImage.ImageCaption)</div>
+                                    }
+                                </div>
+
+                                @if (linkUrl != String.Empty)
+                                {
+                                @:</a>
+                            }
+                        </div>
+                    }
+                }
+
+                else
+                {
+                    Usn_Cbi_GalleryVideo galleryVideo = (Usn_Cbi_GalleryVideo)galleryItem.Content;
+
+                    if (galleryVideo.VideoSource.HasValue() && (galleryVideo.VideoSource == "youtube" || galleryVideo.VideoSource == "vimeo") && galleryVideo.Video3rdParty.HasValue())
+                    {
+                        SiteBuilderVideo video = _siteBuilderService.GetVideo(galleryVideo.Video3rdParty);
+
+                        string smallImage = String.Empty;
+                        string displayImageX1 = String.Empty;
+                        string displayImageX2 = String.Empty;
+                        string alternativeText = galleryVideo.GalleryImageThumbnail != null ? GetAlternativeText(galleryVideo.GalleryImageThumbnail.HasValue("alternativeText") ? galleryVideo.GalleryImageThumbnail.Value<string>("alternativeText") : String.Empty) : Umbraco.GetDictionaryValue("USN Blank Image");
+                        bool isSVG = galleryVideo.GalleryImageThumbnail != null ? (galleryVideo.GalleryImageThumbnail.Value<string>("umbracoExtension") == "svg" ? true : false) : false;
+                        bool webPEnabled = webPEnabledAppSettings &&  galleryVideo.GalleryImageThumbnail != null && !galleryVideo.GalleryImageThumbnail.Value<bool>("disableWebPConversion");
+                        int imageQuality = galleryVideo.GalleryImageThumbnail?.HasValue("imageQuality") == true ? galleryVideo.GalleryImageThumbnail.Value<int>("imageQuality") : 75;
+
+                        if (!isSVG && uniqueSettings.BoxPad)
+                        {
+                            smallImage = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.Url() + "?width=" + (imageSettings.Width / 10) + "&height=" + (imageSettings.Height / 10) + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?" + "width=" + (imageSettings.Width / 10) + "&height=" + (imageSettings.Height / 10) + "&rmode=boxpad";
+                            displayImageX1 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.Url() + "?width=" + (imageSettings.Width / 2) + "&height=" + (imageSettings.Height / 2) + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + (imageSettings.Width / 2) + "&height=" + (imageSettings.Height / 2) + "&rmode=boxpad";
+                            displayImageX2 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.Url() + "?width=" + imageSettings.Width + "&height=" + imageSettings.Height + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + imageSettings.Width + "&height=" + imageSettings.Height + "&rmode=boxpad";
+                        }
+                        else if (!isSVG && !uniqueSettings.BoxPad)
+                        {
+                            smallImage = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.GetCropUrl(cropAlias: imageSettings.CropAlias, width: (imageSettings.Width / 10), height: (imageSettings.Height / 10)) : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width=" + (imageSettings.Width / 10) + "&height=" + (imageSettings.Height / 10);
+                            displayImageX1 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.GetCropUrl(cropAlias: imageSettings.CropAlias, width: (imageSettings.Width / 2), height: (imageSettings.Height / 2)) : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width=" + (imageSettings.Width / 2) + "&height=" + (imageSettings.Height / 2);
+                            displayImageX2 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.GetCropUrl(cropAlias: imageSettings.CropAlias, width: imageSettings.Width, height: imageSettings.Height) : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width=" + imageSettings.Width + "&height=" + imageSettings.Height;
+                        }
+
+                        videoCircleClass = galleryVideo.DisableLightWindow ? String.Empty : videoCircleClass;
+
+                        <div class="item @carouselSettings.ItemsClass @videoCircleClass @animation.AnimationClass @itemMinSettings.CustomClasses" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration">
+                            @if ((disableModalLinks || galleryVideo.DisableLightWindow) && video.VideoID != String.Empty)
+                            {
+                                <div class="image @maxWidthClass @opacityClass lazyframe lazyframe-video" data-vendor="@galleryVideo.VideoSource" data-src="@video.VideoURLModified" data-ratio="16:9" @Html.Raw(maxWidthStyle)>
+
+                                    @if (isSVG)
+                                    {
+                                        <img src="@galleryVideo.GalleryImageThumbnail.Url()" alt="@alternativeText">
+                                    }
+                                    else
+                                    {
+                                        @if (webPEnabled)
+                                        {
+                                            <picture>
+                                                <source type="image/webp" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x">
+                                                <img class="lazyload @videoCircleClass" src="@(smallImage)&format=webp&quality=@(imageQuality)" width="@imageSettings.Width" height="@imageSettings.Height" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x" alt="@alternativeText">
+                                            </picture>
+                                        }
+                                        else
+                                        {
+                                            <picture>
+                                                <source data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x" width="@imageSettings.Height / 2)" height="@(imageSettings.Height / 2)">
+                                                <img class="lazyload @videoCircleClass" src="@(smallImage)&quality=@(imageQuality)" width="@imageSettings.Width" height="@imageSettings.Height" data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x" alt="@alternativeText">
+                                            </picture>
+                                        }
+                                    }
+
+                                    @if (galleryVideo.VideoCaption.HasValue())
+                                    {
+                                        <div class="caption">@Html.Raw(galleryVideo.VideoCaption)</div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                if (galleryVideo.LightWindowTitle.HasValue())
+                                {
+                                    title = "data-title=\"" + galleryVideo.LightWindowTitle + "\"";
+                                }
+
+                                if (galleryVideo.LightWindowFooter.HasValue())
+                                {
+                                    footer = "data-footer=\"" + galleryVideo.LightWindowFooter + "\"";
+                                }
+
+                                <a href="@video.VideoURLModified" data-type="video" @Html.Raw(title) @Html.Raw(footer) aria-label="@Umbraco.GetDictionaryValue("USN Aria Play Video")" aria-haspopup="dialog" role="button" data-toggle="lightbox" @Html.Raw(video.VideoDataRemote) data-gallery="galleryname_@uniqueID" data-width="1350">
+
+                                    <div class="image @maxWidthClass @opacityClass @videoCircleClass video" @Html.Raw(maxWidthStyle)>
+                                        @if (isSVG)
+                                        {
+                                            <img class="lazyload" src="@galleryVideo.GalleryImageThumbnail.Url()" alt="@alternativeText">
+                                        }
+                                        else
+                                        {
+                                            @if (webPEnabled)
+                                            {
+                                            <picture>
+                                                <source type="image/webp" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x">
+                                                <img class="lazyload @videoCircleClass" src="@(smallImage)&format=webp&quality=@(imageQuality)" width="@imageSettings.Width" height="@imageSettings.Height" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x" alt="@alternativeText">
+                                            </picture>
+                                            }
+                                            else
+                                            {
+                                            <picture>
+                                                <source data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x">
+                                                <img class="lazyload @videoCircleClass" src="@(smallImage)&quality=@(imageQuality)" width="@imageSettings.Width" height="@imageSettings.Height" data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x" alt="@alternativeText">
+                                            </picture>
+                                            }
+                                        }
+                                        <div class="overlayicon">
+                                            <i aria-hidden="true" class="icon usn_ion-md-play"></i>
+                                        </div>
+                                        @if (galleryVideo.VideoCaption.HasValue())
+                                        {
+                                            <div class="caption">@Html.Raw(galleryVideo.VideoCaption)</div>
+                                        }
+                                    </div>
+                                </a>
+                            }
+
+                        </div>
+
+                    }
+
+                    else if (galleryVideo.VideoSource.HasValue() && galleryVideo.VideoSource == "mp4" && galleryVideo.VideoMp4.HasValue())
+                    {
+                        string smallImage = String.Empty;
+                        string displayImageX1 = String.Empty;
+                        string displayImageX2 = String.Empty;
+                        string alternativeText = galleryVideo.GalleryImageThumbnail != null ? GetAlternativeText(galleryVideo.GalleryImageThumbnail.HasValue("alternativeText") ? galleryVideo.GalleryImageThumbnail.Value<string>("alternativeText") : String.Empty) : Umbraco.GetDictionaryValue("USN Blank Image");
+                        bool isSVG = galleryVideo.GalleryImageThumbnail != null ? (galleryVideo.GalleryImageThumbnail.Value<string>("umbracoExtension") == "svg" ? true : false) : false;
+                        bool webPEnabled = webPEnabledAppSettings && galleryVideo.GalleryImageThumbnail != null && !galleryVideo.GalleryImageThumbnail.Value<bool>("disableWebPConversion");
+                        int imageQuality = galleryVideo.GalleryImageThumbnail?.HasValue("imageQuality") == true ? galleryVideo.GalleryImageThumbnail.Value<int>("imageQuality") : 75;
+
+                        if (!isSVG && uniqueSettings.BoxPad)
+                        {
+                            smallImage = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.Url() + "?width=" + (imageSettings.Width / 10) + "&height=" + (imageSettings.Height / 10) + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?" + "width=" + (imageSettings.Width / 10) + "&height=" + (imageSettings.Height / 10) + "&rmode=boxpad";
+                            displayImageX1 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.Url() + "?width=" + (imageSettings.Width / 2) + "&height=" + (imageSettings.Height / 2) + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + (imageSettings.Width / 2) + "&height=" + (imageSettings.Height / 2) + "&rmode=boxpad";
+                            displayImageX2 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.Url() + "?width=" + imageSettings.Width + "&height=" + imageSettings.Height + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + imageSettings.Width + "&height=" + imageSettings.Height + "&rmode=boxpad";
+                        }
+                        else if (!isSVG && !uniqueSettings.BoxPad)
+                        {
+                            smallImage = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.GetCropUrl(cropAlias: imageSettings.CropAlias, width: (imageSettings.Width / 10), height: (imageSettings.Height / 10)) : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width=" + (imageSettings.Width / 10) + "&height=" + (imageSettings.Height / 10);
+                            displayImageX1 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.GetCropUrl(cropAlias: imageSettings.CropAlias, width: (imageSettings.Width / 2), height: (imageSettings.Height / 2)) : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width=" + (imageSettings.Width / 2) + "&height=" + (imageSettings.Height / 2);
+                            displayImageX2 = galleryVideo.GalleryImageThumbnail != null ? galleryVideo.GalleryImageThumbnail.GetCropUrl(cropAlias: imageSettings.CropAlias, width: imageSettings.Width, height: imageSettings.Height) : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width=" + imageSettings.Width + "&height=" + imageSettings.Height;
+                        }
+                        
+                        if (disableModalLinks && galleryVideo.DisableLightWindow)
+                        {
+                            videoCircleClass = String.Empty;
+                        }
+
+                        <div class="item @carouselSettings.ItemsClass @videoCircleClass @animation.AnimationClass @itemMinSettings.CustomClasses" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration">
+                            @if (disableModalLinks || galleryVideo.DisableLightWindow)
+                            {
+
+                                string dataPoster = galleryVideo.GalleryImageThumbnail != null 
+                                    ? (isSVG 
+                                        ? galleryVideo.GalleryImageThumbnail.Url() 
+                                        : (webPEnabled ? $"{displayImageX2}&format=webp&quality={imageQuality}" : $"{displayImageX2}&quality={imageQuality}"))
+                                    : string.Empty;
+
+                                string posterAttribute = !string.IsNullOrEmpty(dataPoster) 
+                                    ? $"data-poster=\"{dataPoster}\"" 
+                                    : string.Empty;
+
+                                <div class="image @maxWidthClass @opacityClass @videoCircleClass video ratio ratio-16x9" @Html.Raw(maxWidthStyle)>
+                                    <video class="lazyload embed-responsive-item" controls preload="none" @Html.Raw(posterAttribute)>
+                                        <source src="@galleryVideo.VideoMp4.Url()" type="video/mp4">
+                                    </video>
+                                    @if (galleryVideo.VideoCaption.HasValue())
+                                    {
+                                        <div class="caption">@Html.Raw(galleryVideo.VideoCaption)</div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                if (galleryVideo.LightWindowTitle.HasValue())
+                                {
+                                    title = "data-title=\"" + galleryVideo.LightWindowTitle + "\"";
+                                }
+
+                                if (galleryVideo.LightWindowFooter.HasValue())
+                                {
+                                    footer = "data-footer=\"" + galleryVideo.LightWindowFooter + "\"";
+                                }
+
+                                <a href="#" data-src="<video class='embed-responsive-item' controls autoplay><source src='@galleryVideo.VideoMp4.Url()' type='video/mp4'></video>" data-type="html" @Html.Raw(title) @Html.Raw(footer) aria-label="@Umbraco.GetDictionaryValue("USN Aria Play Video")" aria-haspopup="dialog" role="button" data-toggle="lightbox" data-gallery="galleryname_@uniqueID" data-width="1350" data-height="750">
+
+                                    <div class="image @maxWidthClass @opacityClass @videoCircleClass video" @Html.Raw(maxWidthStyle)>
+                                        @if (isSVG)
+                                        {
+                                            <img class="lazyload" src="@galleryVideo.GalleryImageThumbnail.Url()" alt="@alternativeText">
+                                        }
+                                        else
+                                        {
+                                            @if (webPEnabled)
+                                            {
+                                            <picture>
+                                                <source type="image/webp" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x">
+                                                <img class="lazyload @videoCircleClass" src="@(smallImage)&format=webp&quality=@(imageQuality)" width="@imageSettings.Width" height="@imageSettings.Height" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x" alt="@alternativeText">
+                                            </picture>
+                                            }
+                                            else
+                                            {
+                                            <picture>
+                                                <source data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x">
+                                                <img class="lazyload @videoCircleClass" src="@(smallImage)&quality=@(imageQuality)" width="@imageSettings.Width" height="@imageSettings.Height" data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x" alt="@alternativeText">
+                                            </picture>
+                                            }
+                                        }
+                                        <div class="overlayicon">
+                                            <i aria-hidden="true" class="icon usn_ion-md-play"></i>
+                                        </div>
+                                        @if (galleryVideo.VideoCaption.HasValue())
+                                        {
+                                            <div class="caption">@Html.Raw(galleryVideo.VideoCaption)</div>
+                                        }
+                                    </div>
+                                </a>
+                            }
+
+                        </div>
+                    }
+                }
+            }
+
+        </div>
+    }
+}
+
+@{
+    async Task OutputMediaFolder(IPublishedContent folder, string itemsClass, ImageSettings imageSettings, AnimationSettings animation, bool disableLightWindow, string uniqueId, string viewPath, bool includeChildFolders, IUsn_Cmp_CommonBlockSettings itemMinSettings, bool webPEnabled, bool enableRandomOrder, string opacityClass, string maxWidthClass, string maxWidthStyle, string anchor)
+    {
+        if (folder != null && folder.Children.Any())
+        {
+            var folderItems = enableRandomOrder ? folder.Children.Randomize() : folder.Children;
+
+            foreach (var item in folderItems)
+            {
+                if (item.ContentType.Alias == "Image" || ((item.ContentType.Alias == "File" || item.ContentType.Alias == "umbracoMediaVectorGraphics") && item.Value<string>("umbracoExtension") == "svg"))
+                {
+                    string[] imageExtensions = { "png", "gif", "jpg", "jpeg", "svg", "webp" };
+
+                    if (imageExtensions.Any(x => item.Value<string>("umbracoExtension") == x))
+                    {
+                        <div class="item @imageSettings.CircleClass @itemsClass @itemMinSettings.CustomClasses @animation.AnimationClass" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration" @Html.Raw(anchor)>
+                        
+                            @if (!disableLightWindow)
+                            {
+                                @:<a href="@item.Url()" aria-label="@Umbraco.GetDictionaryValue("USN Aria Open Image")" aria-haspopup="dialog" role="button"  data-toggle="lightbox" data-type="image" data-gallery="galleryname_@uniqueId">
+                            }
+                                <div class="image @maxWidthClass @opacityClass @imageSettings.CircleClass"  @Html.Raw(maxWidthStyle)>
+
+                                    @await Html.PartialAsync(viewPath + "/MiscPageElements/Image", item, new ViewDataDictionary(ViewData) { { "imageSettings", imageSettings }, { "themeFolder", Model.BaseModel.ThemeFolder } })
+
+                                </div>
+
+                            @if (!disableLightWindow)
+                            {
+                                @:</a>
+                            }
+
+                            @{
+                                anchor = String.Empty;
+                            }
+
+                        </div>
+                    }
+                }
+                else if (item.ContentType.Alias == "File" || item.ContentType.Alias == "umbracoMediaVideo")
+                {
+                    string videoCircleClass = disableLightWindow ? String.Empty : imageSettings.CircleClass;
+
+                    if (videoExtensions.Any(x => item.Value<string>("umbracoExtension") == x))
+                    {
+                        <div class="item @itemsClass @videoCircleClass @itemMinSettings.CustomClasses @animation.AnimationClass" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration" @Html.Raw(anchor)>
+                            @if (disableLightWindow)
+                            {
+                                string dataPoster = uniqueSettings.BoxPad ? "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + imageSettings.Width + "&height=" + imageSettings.Height + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + imageSettings.Width + "&height=" + imageSettings.Height;
+                                string posterAttribute = !string.IsNullOrEmpty(dataPoster) ? $"data-poster=\"{dataPoster}\""  : string.Empty;
+
+                                <div class="image @opacityClass @videoCircleClass video ratio ratio-16x9">
+                                    <video class="lazyload embed-responsive-item" controls preload="none" @Html.Raw(posterAttribute)>
+                                        <source src="@item.Url()" type="video/mp4">
+                                    </video>
+                                </div>
+                            }
+                            else
+                            {
+
+                                <a href="@item.Url()" data-type="video" aria-label="@Umbraco.GetDictionaryValue("USN Aria Play Video")" aria-haspopup="dialog" role="button" data-toggle="lightbox" data-gallery="galleryname_@uniqueId" data-width="1350" data-height="750">
+
+                                    <div class="image @opacityClass @videoCircleClass video">
+                                        @if (webPEnabled)
+                                        {
+                                        <picture>
+                                            <source type="image/webp" data-srcset="/images/@(Model.BaseModel.ThemeFolder)/clear.gif?format=webp&width=@(imageSettings.Width)&height=@(imageSettings.Height)">
+                                            <img class="@videoCircleClass" src="/images/@(Model.BaseModel.ThemeFolder)/clear.gif?format=webp&width=@(imageSettings.Width)&height=@(imageSettings.Height)" alt="@(Umbraco.GetDictionaryValue("USN Blank Image"))">
+                                        </picture>
+                                        }
+                                        else
+                                        {
+                                        <picture>
+                                            <img class="@videoCircleClass" src="/images/@(Model.BaseModel.ThemeFolder)/clear.gif?width=@(imageSettings.Width)&height=@(imageSettings.Height)" alt="@(Umbraco.GetDictionaryValue("USN Blank Image"))">
+                                        </picture>
+                                        }
+                                        <div class="overlayicon">
+                                            <i aria-hidden="true" class="icon usn_ion-md-play"></i>
+                                        </div>
+                                    </div>
+
+                                </a>
+                            }
+
+                            @{
+                                anchor = String.Empty;
+                            }
+
+                        </div>
+
+                        
+                    }
+                }
+                else if (item.ContentType.Alias == "Folder" && includeChildFolders)
+                {
+                    await OutputMediaFolder(item, itemsClass, imageSettings, animation, disableLightWindow, uniqueId, viewPath, includeChildFolders, itemMinSettings, webPEnabled, enableRandomOrder, opacityClass, maxWidthClass, maxWidthStyle, anchor);
+                }
+            }
+        }
+    }
+
+    async Task OutputMultipleImages(IEnumerable<IPublishedContent> images, string itemsClass, ImageSettings imageSettings, AnimationSettings animation, bool disableLightWindow, string uniqueId, string viewPath, bool includeChildFolders, IUsn_Cmp_CommonBlockSettings itemMinSettings, bool webPEnabled, bool enableRandomOrder, string opacityClass, string maxWidthClass, string maxWidthStyle, string anchor)
+    {
+        if (images != null && images.Any())
+        {
+            images = enableRandomOrder ? images.Randomize() : images;
+
+            foreach (var item in images)
+            {
+                if (item.ContentType.Alias == "Image" || ((item.ContentType.Alias == "File" || item.ContentType.Alias == "umbracoMediaVectorGraphics") && item.Value<string>("umbracoExtension") == "svg"))
+                {
+                    string[] imageExtensions = { "png", "gif", "jpg", "jpeg", "svg", "webp" };
+
+                    if (imageExtensions.Any(x => item.Value<string>("umbracoExtension") == x))
+                    {
+                        <div class="item @imageSettings.CircleClass @itemsClass @itemMinSettings.CustomClasses @animation.AnimationClass" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration" @Html.Raw(anchor)>
+                            
+                            @if (!disableLightWindow)
+                            {
+                                @:<a href="@item.Url()" aria-label="@Umbraco.GetDictionaryValue("USN Aria Open Image")" aria-haspopup="dialog" role="button" data-toggle="lightbox" data-type="image" data-gallery="galleryname_@uniqueId">
+                            }
+
+                                <div class="image @maxWidthClass @opacityClass @imageSettings.CircleClass" @Html.Raw(maxWidthStyle)>
+
+                                    @await Html.PartialAsync(viewPath + "/MiscPageElements/Image", item, new ViewDataDictionary(ViewData) { { "imageSettings", imageSettings }, { "themeFolder", Model.BaseModel.ThemeFolder } })
+
+                                </div>
+
+                            @if (!disableLightWindow)
+                            {
+                                @:</a>
+                            }
+
+                           @{
+                                anchor = String.Empty;
+                            }
+                        </div>
+                    }
+                }
+                else if (item.ContentType.Alias == "File" || item.ContentType.Alias == "umbracoMediaVideo")
+                {
+                    string videoCircleClass = disableLightWindow ? String.Empty : imageSettings.CircleClass;
+
+                    if (videoExtensions.Any(x => item.Value<string>("umbracoExtension") == x))
+                    {
+                        <div class="item @itemsClass @videoCircleClass @itemMinSettings.CustomClasses @animation.AnimationClass" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration" @Html.Raw(anchor)>
+                            @if (disableLightWindow)
+                            {
+                                 string dataPoster = uniqueSettings.BoxPad ? "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + imageSettings.Width + "&height=" + imageSettings.Height + "&rmode=boxpad" : "/images/" + Model.BaseModel.ThemeFolder + "/clear.gif?width =" + imageSettings.Width + "&height=" + imageSettings.Height;
+                                 string posterAttribute = !string.IsNullOrEmpty(dataPoster) ? $"data-poster=\"{dataPoster}\""  : string.Empty;
+
+                                <div class="image @maxWidthClass @opacityClass @videoCircleClass video ratio ratio-16x9" @Html.Raw(maxWidthStyle)>
+                                    <video class="lazyload embed-responsive-item" controls preload="none" @Html.Raw(posterAttribute)>
+                                        <source src="@item.Url()" type="video/mp4">
+                                    </video>
+                                </div>
+                            }
+                            else
+                            {
+
+                                <a href="@item.Url()" data-type="video" aria-label="@Umbraco.GetDictionaryValue("USN Aria Play Video")" aria-haspopup="dialog" role="button" data-toggle="lightbox" data-gallery="galleryname_@uniqueId" data-width="1350" data-height="750">
+
+                                    <div class="image @maxWidthClass @opacityClass @videoCircleClass video" @Html.Raw(maxWidthStyle)>
+                                        @if (webPEnabled)
+                                        {
+                                        <picture>
+                                            <source type="image/webp" data-srcset="/images/@(Model.BaseModel.ThemeFolder)/clear.gif?format=webp&width=@(imageSettings.Width)&height=@(imageSettings.Height)">
+                                            <img class="@videoCircleClass" src="/images/@(Model.BaseModel.ThemeFolder)/clear.gif?format=webp&width=@(imageSettings.Width)&height=@(imageSettings.Height)" alt="@(Umbraco.GetDictionaryValue("USN Blank Image"))">
+                                        </picture>
+                                        }
+                                        else
+                                        {
+                                        <picture>
+                                            <img class="@videoCircleClass" src="/images/@(Model.BaseModel.ThemeFolder)/clear.gif?width=@(imageSettings.Width)&height=@(imageSettings.Height)" alt="@(Umbraco.GetDictionaryValue("USN Blank Image"))">
+                                        </picture>
+                                        }
+                                        <div class="overlayicon">
+                                            <i aria-hidden="true" class="icon usn_ion-md-play"></i>
+                                        </div>
+                                    </div>
+
+                                </a>
+                            }
+
+                            @{
+                                anchor = String.Empty;
+                            }
+                        </div>
+                    }
+                }
+                else if (item.ContentType.Alias == "Folder")
+                {
+                    await OutputMediaFolder(item, itemsClass, imageSettings, animation, disableLightWindow, uniqueId, viewPath, includeChildFolders, itemMinSettings, webPEnabled, enableRandomOrder, opacityClass, maxWidthClass, maxWidthStyle, anchor);
+                }
+            }
+        }
+    }
+}
+
+@functions{
+
+    private string GetAlternativeText(string altText)
+    {
+        string output = altText;
+
+        if (altText.Length >= 3)
+        {
+            if (altText[0].ToString() == "[" && altText[altText.Length - 1].ToString() == "]")
+            {
+                string dictionaryLabel = altText.Substring(1, altText.Length - 2);
+                output = Umbraco.GetDictionaryValue(dictionaryLabel);
+            }
+        }
+
+        return output;
+    }
+}

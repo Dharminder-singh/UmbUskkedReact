@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="en_us" intName="English (US)" localName="English (US)" lcid="" culture="en-US">
+	<area alias="defaultdialogs">
+		<key alias="nodeNameLinkPicker">Link text</key>
+	</area>
+	<area alias="login">
+		<key alias="greeting0">Site Builder</key>
+		<key alias="greeting1">Site Builder</key>
+		<key alias="greeting2">Site Builder</key>
+		<key alias="greeting3">Site Builder</key>
+		<key alias="greeting4">Site Builder</key>
+		<key alias="greeting5">Site Builder</key>
+		<key alias="greeting6">Site Builder</key>
+	</area>
+</language>

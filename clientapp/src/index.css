@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+header {
+    background-color: #00142e;
+    border-bottom: 1px solid #e5e5e5;
+}
+.nav-items{
+    color: #ffffff;
+    text-transform: capitalize;
+}

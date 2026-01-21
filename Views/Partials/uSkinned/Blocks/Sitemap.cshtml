@@ -1,0 +1,284 @@
+﻿@inherits UmbracoViewPage<SiteBuilderBlock>
+@using USNSiteBuilder.Core.Models
+@using USNSiteBuilder.Core.Extensions
+@using USNSiteBuilder.Core.Interfaces
+@using Umbraco.Cms.Core.Services
+@inject ISiteBuilderService _siteBuilderService
+@inject IPublicAccessService publicAccessService
+@{
+    //Available as Component Block and Split Component Block types
+
+    var content = (IUsn_Cmp_Sitemap_Content)Model.BlockContent;
+
+    //Settings taken from compositions common to all block types
+    var animateSettings = (IUsn_Cmp_AnimateSettings)Model.BlockSettings;
+
+    AnimationSettings animation = _siteBuilderService.GetAnimationSettings(animateSettings.Animate, animateSettings.AnimationDelay, animateSettings.AnimationDuration, animateSettings.AnimationStyle);
+
+    IPublishedContent startPage = content.SitemapStartPage;
+
+    if (startPage != null)
+    {
+        <div class="component-main @animation.AnimationClass" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration">
+            <nav class="sitemap" aria-label="@Umbraco.GetDictionaryValue("USN Aria Sitemap")">
+                @if (!content.HideStartPage)
+                {
+                    <ul class="nav">
+                        <li class="nav-item level-@(startPage.Level)">
+                            <a class="nav-link" href="@startPage.Url()">
+                                @{
+                                    string sitemapLinkText = startPage.HasValue("htmlSitemapLinkText") ? startPage.Value<string>("htmlSitemapLinkText") : (startPage.HasValue("onPageTitle") ? startPage.Value<string>("onPageTitle") : startPage.Name);
+                                }
+                                @Html.Raw(sitemapLinkText)
+                            </a>
+                            @{
+                                Traverse(startPage, content);
+                            }
+
+                        </li>
+                    </ul>
+                }
+                else
+                {
+                    Traverse(startPage, content);
+                }
+            </nav>
+        </div>
+    }
+}
+
+@functions{
+
+    private void Traverse(IPublishedContent node, IUsn_Cmp_Sitemap_Content content)
+    {
+        IEnumerable<IPublishedContent>
+        items;
+
+        if (content.IncludeProtectedPages)
+        {
+            items = node.Children.Where(x => (x.IsDocumentType(Usnpage.ModelTypeAlias) || x.IsDocumentType(UsnlistingPage.ModelTypeAlias) || x.IsDocumentType(UsnblogLandingPage.ModelTypeAlias) || x.IsDocumentType(UsnsearchResultsPage.ModelTypeAlias) || x.IsDocumentType(UsnshopPage.ModelTypeAlias)) && x.IsVisible());
+        }
+        else
+        {
+            items = node.Children.Where(x => (x.IsDocumentType(Usnpage.ModelTypeAlias) || x.IsDocumentType(UsnlistingPage.ModelTypeAlias) || x.IsDocumentType(UsnblogLandingPage.ModelTypeAlias) || x.IsDocumentType(UsnsearchResultsPage.ModelTypeAlias) || x.IsDocumentType(UsnshopPage.ModelTypeAlias)) && x.IsVisible() && !publicAccessService.IsProtected(x.Path));
+        }
+
+        if (items.Any())
+        {
+            <ul class="nav">
+                @foreach (var item in items)
+                {
+                    <li class="nav-item level-@item.Level">
+                        <a class="nav-link" href="@item.Url()">
+                            @{
+                                string sitemapLinkText = item.HasValue("htmlSitemapLinkText") ? item.Value<string>("htmlSitemapLinkText") : (item.HasValue("onPageTitle") ? item.Value<string>("onPageTitle") : item.Name);
+                            }
+                            @Html.Raw(sitemapLinkText)
+                        </a>
+                        @{
+                            Traverse(item, content);
+                        }
+                    </li>
+                }
+            </ul>
+        }
+
+        var catFolder = node.Children.FirstOrDefault(x => (x.IsDocumentType(UsnblogCategories.ModelTypeAlias)) && x.IsVisible());
+
+        if (catFolder != null)
+        {
+            TraverseCategories(catFolder);
+        }
+
+        var filterFolder = node.Children.FirstOrDefault(x => (x.IsDocumentType(UsnlistingFilters.ModelTypeAlias)) && x.IsVisible());
+
+        if (filterFolder != null)
+        {
+            TraverseFilters(filterFolder);
+        }
+
+        if(content.IncludeProductPages)
+        {
+            var productsFolder = node.Children.FirstOrDefault(x => (x.IsDocumentType(UsnproductPagesFolder.ModelTypeAlias)));
+            if (productsFolder != null)
+            {
+                ListProducts(productsFolder);
+            }
+        }
+
+        if (content.IncludeListingPages)
+        {
+            var listPagesFolder = node.Children.FirstOrDefault(x => (x.IsDocumentType(UsnlistingPagesFolder.ModelTypeAlias)));
+            if (listPagesFolder != null)
+            {
+                ListPages(listPagesFolder);
+            }
+        }
+
+        if (content.IncludeBlogPosts)
+        {
+            var postsFolder = node.Children.FirstOrDefault(x => (x.IsDocumentType(UsnblogPostsFolder.ModelTypeAlias)));
+            if (postsFolder != null)
+            {
+                ListPosts(postsFolder);
+            }
+        }
+
+
+    }
+
+    private void TraverseCategories(IPublishedContent catFolder)
+    {
+
+        var items = catFolder.Children.Where(x => (x.IsDocumentType(UsnblogCategoryPage.ModelTypeAlias)) && x.IsVisible());
+
+        if (items.Any())
+        {
+            <ul class="nav">
+                @foreach (var item in items)
+                {
+                    <li class="nav-item level-@item.Level">
+                        <a class="nav-link" href="@item.Url()">
+                            @{
+                                string sitemapLinkText = item.HasValue("htmlSitemapLinkText") ? item.Value<string>("htmlSitemapLinkText") : (item.HasValue("onPageTitle") ? item.Value<string>("onPageTitle") : item.Name);
+                            }
+                            @Html.Raw(sitemapLinkText)
+                        </a>
+                        @{TraverseCategories(item);}
+                    </li>
+                }
+            </ul>
+        }
+    }
+
+    private void TraverseFilters(IPublishedContent filterFolder)
+    {
+
+        var filterGroups = filterFolder.Children.Where(x => x.IsDocumentType(UsnlistingFilterGroup.ModelTypeAlias));
+
+        if (filterGroups.Any())
+        {
+            <ul class="nav">
+                @foreach (var group in filterGroups)
+                {
+                    var filters = group.Children.Where(x => (x.IsDocumentType(UsnlistingFilterPage.ModelTypeAlias)) && x.IsVisible());
+
+                    if (filters.Any())
+                    {
+
+                        <li class="nav-item level-@group.Level nav-item_no-link">
+                            <div class="nav-link_no-link">@group.Name</div>
+
+                            <ul class="nav">
+                                @foreach (var filter in filters)
+                                {
+                                    <li class="nav-item level-@filter.Level">
+                                        <a class="nav-link" href="@filter.Url()">
+                                            @{
+                                                string sitemapLinkText = filter.HasValue("htmlSitemapLinkText") ? filter.Value<string>("htmlSitemapLinkText") : (filter.HasValue("onPageTitle") ? filter.Value<string>("onPageTitle") : filter.Name);
+                                            }
+                                            @Html.Raw(sitemapLinkText)
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                       </li>
+                    }
+                }
+            </ul>
+        }
+    }
+
+    private void ListProducts(IPublishedContent productsFolder)
+    {
+
+        var products = productsFolder.Children.Where(x => x.IsDocumentType(UsnproductPage.ModelTypeAlias));
+
+        if (products.Any())
+        {
+            <ul class="nav">
+
+                <li class="nav-item level-@productsFolder.Level nav-item_no-link">
+                    <div class="nav-link_no-link">@productsFolder.Name</div>
+
+                    <ul class="nav">
+                        @foreach (var product in products)
+                        {
+                            <li class="nav-item level-@product.Level">
+                                <a class="nav-link" href="@product.Url()">
+                                    @{
+                                        string sitemapLinkText = product.HasValue("htmlSitemapLinkText") ? product.Value<string>("htmlSitemapLinkText") : (product.HasValue("onPageTitle") ? product.Value<string>("onPageTitle") : product.Name);
+                                    }
+                                    @Html.Raw(sitemapLinkText)
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </li>
+
+            </ul>
+        }
+    }
+
+    private void ListPages(IPublishedContent pagesFolder)
+    {
+
+        var pages = pagesFolder.Children.Where(x => x.IsDocumentType(UsnlistPage.ModelTypeAlias));
+
+        if (pages.Any())
+        {
+            <ul class="nav">
+
+                <li class="nav-item level-@pagesFolder.Level nav-item_no-link">
+                    <div class="nav-link_no-link">@pagesFolder.Name</div>
+
+                    <ul class="nav">
+                        @foreach (var listPage in pages)
+                        {
+                            <li class="nav-item level-@listPage.Level">
+                                <a class="nav-link" href="@listPage.Url()">
+                                    @{
+                                        string sitemapLinkText = listPage.HasValue("htmlSitemapLinkText") ? listPage.Value<string>("htmlSitemapLinkText") : (listPage.HasValue("onPageTitle") ? listPage.Value<string>("onPageTitle") : listPage.Name);
+                                    }
+                                    @Html.Raw(sitemapLinkText)
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </li>
+
+            </ul>
+        }
+    }
+
+    private void ListPosts(IPublishedContent postsFolder)
+    {
+
+        var posts = postsFolder.Children.Where(x => x.IsDocumentType(UsnblogPost.ModelTypeAlias));
+
+        if (posts.Any())
+        {
+            <ul class="nav">
+
+                <li class="nav-item level-@postsFolder.Level nav-item_no-link">
+                    <div class="nav-link_no-link">@postsFolder.Name</div>
+
+                    <ul class="nav">
+                        @foreach (var post in posts)
+                        {
+                            <li class="nav-item level-@post.Level">
+                                <a class="nav-link" href="@post.Url()">
+                                    @{
+                                        string sitemapLinkText = post.HasValue("htmlSitemapLinkText") ? post.Value<string>("htmlSitemapLinkText") : (post.HasValue("onPageTitle") ? post.Value<string>("onPageTitle") : post.Name);
+                                    }
+                                    @Html.Raw(sitemapLinkText)
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </li>
+
+            </ul>
+        }
+    }
+}

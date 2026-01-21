@@ -1,0 +1,10 @@
+﻿@inherits UmbracoViewPage<SiteBuilderBaseViewModel>
+@using USNSiteBuilder.Core.Models
+@{
+    UsnglobalSettings globalSettings = (UsnglobalSettings)Model.GlobalSettings;
+    if (!Model.Value<bool>("disableGlobalHeaderOpeningScripts"))
+    {
+        @Html.Raw(globalSettings.HeaderOpeningScripts)
+    }
+    @Html.Raw(Model.Value<string>("pageHeaderOpeningScripts"))
+}

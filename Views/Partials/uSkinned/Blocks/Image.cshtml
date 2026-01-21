@@ -1,0 +1,113 @@
+﻿@inherits UmbracoViewPage<SiteBuilderBlock>
+@using USNSiteBuilder.Core.Models
+@using USNSiteBuilder.Core.Extensions
+@using USNSiteBuilder.Core.Interfaces
+@inject ISiteBuilderService _siteBuilderService
+@{
+    // Available as Pod Block type only
+
+    var content = (Usn_Pb_Image)Model.BlockContent;
+
+    //Settings taken from compositions common to all pod block types
+    var uniqueSettings = (IUsn_Cmp_Image_Settings)Model.BlockSettings;
+    var animateSettings = (IUsn_Cmp_AnimateSettings)Model.BlockSettings;
+    var itemCommonBlockSettings = (IUsn_Cmp_CommonBlockSettings)Model.BlockSettings;
+    string anchor = _siteBuilderService.MakeAnchorSafe(itemCommonBlockSettings.AnchorName);
+
+    //Headings and secondary headings only present on pods
+    var podContent = Model.BlockContent as Usn_Pb_Image;
+
+    string uniqueId = ViewData["uniqueId"].ToString();
+    string backgroundColorLabel = ViewData["backgroundColorLabel"].ToString();
+    bool disableModalLinks = Convert.ToBoolean(ViewData["disableModalLinks"]);
+    string blockLocation = ViewData["blockLocation"] != null ? ViewData["blockLocation"].ToString() : String.Empty;
+    string leftOffsetDesktop = ViewData["leftOffsetDesktop"] != null ? ViewData["leftOffsetDesktop"].ToString() : String.Empty;
+    string leftOffsetTablet = ViewData["leftOffsetTablet"] != null ? ViewData["leftOffsetTablet"].ToString() : String.Empty;
+    string colWidthDesktop = ViewData["colWidthDesktop"] != null ? ViewData["colWidthDesktop"].ToString() : String.Empty;
+    string colWidthTablet = ViewData["colWidthTablet"] != null ? ViewData["colWidthTablet"].ToString() : String.Empty;
+    string itemClass = ViewData["itemClass"] != null ? ViewData["itemClass"].ToString() : String.Empty;
+
+    //Clear view data before calling next partial
+    ViewData.Clear();
+
+    Usnstyle websiteStyle = (Usnstyle)Model.BaseModel.WebsiteStyle;
+
+    AnimationSettings animation = _siteBuilderService.GetAnimationSettings(animateSettings.Animate, animateSettings.AnimationDelay, animateSettings.AnimationDuration, animateSettings.AnimationStyle);
+    ImageSettings imageSettings = _siteBuilderService.GetImageSettings(uniqueSettings.ImageStyle, uniqueSettings.BoxPad);
+
+    //Since this is a new feature there will be no value in database if not set by a user. Check if null and set to default value
+    decimal imageOpacity = Model.BlockSettings.HasValue("imageOpacity") ? uniqueSettings.ImageOpacity : 100;
+    decimal imageOpacityOnHover = Model.BlockSettings.HasValue("imageOpacityOnHover") ? uniqueSettings.ImageOpacityOnHover : 40;
+    string opacityClass = $"image-opacity-{imageOpacity} image_hover-opacity-{imageOpacityOnHover}";
+
+    string maxWidthClass = uniqueSettings.MaximumImageWidth?.enabled == true ? "img-max" : String.Empty;
+    string maxWidthStyle = uniqueSettings.MaximumImageWidth?.enabled == true ? $"style=\"max-width: {uniqueSettings.MaximumImageWidth.numericValue}px;\"" : String.Empty;
+    string itemTextAlignment = uniqueSettings.TextAlignment.HasValue() ? uniqueSettings.TextAlignment : "text-left";
+    string blockLocationClass = blockLocation == "footer" ? "footer-item " + leftOffsetDesktop + " " + leftOffsetTablet + " " + colWidthDesktop + " " + colWidthTablet + " col-12 col" : String.Empty;
+    string podStyle = "usn_pod_" + _siteBuilderService.GetBlockStyleName(content.ContentType.Alias);
+
+    string lightWindow = String.Empty;
+    string title = String.Empty;
+    string footer = String.Empty;
+
+    <div class="item @blockLocationClass @itemClass @podStyle @itemTextAlignment @itemCommonBlockSettings.CustomClasses @animation.AnimationClass" data-os-animation="@animation.AnimationStyle" data-os-animation-delay="@animation.AnimationDelay" data-os-animation-duration="@animation.AnimationDuration" @Html.Raw(anchor)>
+
+        @await Html.PartialAsync(Model.BaseModel.ThemeFolder + "/MiscPageElements/Headings", new ViewDataDictionary(ViewData) { { "headingOrder", ((Usnstyle)Model.BaseModel.WebsiteStyle).StyleLayout.headingOrder }, { "animation", animation }, { "heading", podContent != null ? podContent.Heading : null }, { "secondaryHeading", podContent != null ? podContent.SecondaryHeading : null }, { "backgroundColorLabel", backgroundColorLabel } })
+
+        @if (content.Image.HasValue() && content.Image != null)
+        {
+            if (!disableModalLinks && !content.DisableLightWindow)
+            {
+                lightWindow = "  aria-label=\"" + Umbraco.GetDictionaryValue("USN Aria Open Image") + "\" aria-haspopup=\"dialog\" role=\"button\" data-toggle=\"lightbox\" data-type=\"image\" data-gallery=\"galleryname_" + uniqueId + "\"";
+
+                if (content.LightWindowTitle.HasValue())
+                {
+                    title = "data-title=\"" + content.LightWindowTitle + "\"";
+                }
+
+                if (content.LightWindowFooter.HasValue())
+                {
+                    footer = "data-footer=\"" + content.LightWindowFooter + "\"";
+                }
+            }
+
+
+            string linkUrl = String.Empty;
+            string linkTarget = String.Empty;
+            string linkTitle = String.Empty;
+            bool displayLink = _siteBuilderService.DisplayLink(content.ImageLink, disableModalLinks);
+
+            if (content.DisableLightWindow && displayLink && content.ImageLink.HasValue())
+            {
+                linkUrl = content.ImageLink.link.LinkUrl;
+                linkTarget = content.ImageLink.link.LinkTarget;
+                linkTitle = content.ImageLink.link.LinkTitle;
+            }
+            else if (!disableModalLinks && !content.DisableLightWindow)
+            {
+                linkUrl = content.Image.Url();
+            }
+
+            
+
+            <div class="image @maxWidthClass @opacityClass @imageSettings.CircleClass" @Html.Raw(maxWidthStyle)>
+                @if (linkUrl != String.Empty)
+                {
+                    @:<a href="@linkUrl" @Html.Raw(title) @Html.Raw(footer) @Html.Raw(linkTarget) @Html.Raw(lightWindow) @Html.Raw(linkTitle)>
+                }
+
+                @await Html.PartialAsync(Model.BaseModel.ThemeFolder + "/MiscPageElements/Image", content.Image, new ViewDataDictionary(ViewData) { { "imageSettings", imageSettings }, { "themeFolder", Model.BaseModel.ThemeFolder } })
+
+                @if (linkUrl != String.Empty)
+                {
+                @:</a>
+                }
+                @if (content.ImageCaption.HasValue())
+                {
+                    <div class="caption">@Html.Raw(content.ImageCaption)</div>
+                }
+            </div>
+        }
+
+    </div>
+}

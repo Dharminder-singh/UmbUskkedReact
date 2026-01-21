@@ -1,0 +1,54 @@
+﻿/*  
+---------------------------------------------------
+Header small screens 04
+---------------------------------------------------  
+*/
+
+body.header-04-sm header#site-header #logo {
+    order: 2;
+    align-self: center;
+}
+
+body.header-04-sm header#site-header .expand-header {
+    right: auto;
+    left: 0;
+}
+
+body.header-04-sm header#site-header nav.shopping-cart {
+    order: 1;
+    right: 0;
+    width: var(--expand-nav-width);
+}
+
+body.header-04-sm header#site-header nav.main,
+body.header-04-sm header#site-header nav.cta-links,
+body.header-04-sm header#site-header .site-search,
+body.header-04-sm header#site-header nav.secondary {
+    width: 100%;
+}
+
+body.header-04-sm header#site-header nav.main {
+    order: 3;
+}
+
+html[dir="ltr"] body.header-04-sm header#site-header nav.main ul ul {
+    padding-left: 0;
+}
+
+body.header-04-sm header#site-header nav.cta-links,
+body.header-04-sm header#site-header .site-search,
+body.header-04-sm header#site-header nav.secondary {
+    padding: var(--base-half-spacing) var(--base-half-spacing) 0;
+}
+
+body.header-04-sm header#site-header nav.cta-links {
+    order: 4;
+}
+
+body.header-04-sm header#site-header .site-search {
+    order: 5;
+}
+
+body.header-04-sm header#site-header nav.secondary {
+    order: 6;
+}

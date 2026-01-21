@@ -1,0 +1,514 @@
+/*  
+---------------------------------------------------
+Listing 
+
+This is also the basis for:
+
+- Windows
+- Pods
+- Footer items
+
+---------------------------------------------------  
+*/
+
+.listing.listing_no-spacing { 
+    overflow: hidden;
+}
+
+.listing.listing_search-results { 
+    margin-top:var(--base-half-spacing);
+    margin-bottom:var(--base-half-spacing);
+}
+
+.p-0 .listing.listing_no-spacing:not(.listing_window-mosaic):first-child { 
+    margin-top: 0;
+}
+
+.p-0 .listing.listing_no-spacing:not(.listing_window-mosaic):last-child { 
+    margin-bottom: 0;
+}
+
+.row.listing.listing_no-spacing:not(.listing_window-mosaic) {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.container-fluid .row.listing:not(.listing_no-spacing):not(.listing_window-mosaic) {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.repeatable.tabbed + .repeatable-content .listing { 
+    margin-top: var(--base-spacing);
+}
+
+.listing:not(.listing_window-mosaic):not(.listing_data-list):not(.listing_links) > .item {
+    padding-bottom: var(--base-spacing);
+}
+
+.listing.listing_no-spacing:not(.listing_window-mosaic):not(.listing_data-list):not(.listing_links) > .item {
+    padding: 0;
+    margin: 0;
+}
+
+.row.slides .item:not(.item_text-boxed) {
+	height: auto;
+}
+
+.item .inner {
+    position: relative;
+    width: 100%;
+    /* overflow: hidden; */
+}
+
+.item:not(.item_text-boxed) .inner {
+    height: 100%;
+}
+
+.item.item_text-boxed .inner::after {
+    content: "";
+    display: block;
+}
+
+.item a:not(.btn) {
+    display: block;
+}
+
+.item.item_text-boxed a:not(.btn) {
+    overflow: hidden; height: 100%;
+}
+
+.item .text a:not(.btn) { 
+    display: inline;
+}
+
+.item .link {
+	display: flex;
+	align-items: center;
+}
+
+.item.text-center .link,
+.item .text-center .link {
+    justify-content: center;
+}
+
+.item.text-right .link,
+.item .text-right .link {
+    justify-content: flex-end;
+}
+
+.item .link a.link_non-btn:not(.btn) {
+    display: inline-block;
+    padding: var(--btn-padding_top) 0 var(--btn-padding_bottom) 0;
+    margin: 5px 0;
+    font-weight: var(--btn-typography_font-weight);
+}
+html[dir="ltr"] .item .link .btn + a.link_non-btn:not(.btn) {
+	margin-left: 10px;
+}
+html[dir="rtl"] .item .link .btn + a.link_non-btn:not(.btn) {
+	margin-right: 10px;
+}
+
+.hide-buttons .item .link { 
+    display: none;
+}
+
+.item .image {
+    position: relative;
+    z-index: 0;
+}
+
+.item .image:not(.img-max) img { 
+    width:100%;
+}
+
+/* Icon images */
+
+.icon-images .image:not(.img-max) * { 
+    max-width: 80px!important;
+}
+.icon-images .text-center .image * { 
+    margin: 0 auto;
+}
+html[dir="ltr"] .icon-images .text-right .image * {
+	margin-left: auto;
+}
+html[dir="rtl"] .icon-images .text-right .image * {
+	margin-right: auto;
+}
+
+/* Icon images - add padding around icon image if there is a background color selected */
+.icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg:not(.item_text-above) .image,
+.listing:not(.listing_window-mosaic) .item.item_has-bg:not(.item_text-above) .image.img-max {
+	margin-bottom: 0;
+	padding-top: var(--base-spacing);
+}
+
+.icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg .image.rounded-circle,
+.listing:not(.listing_window-mosaic) .item.item_has-bg .image.rounded-circle.img-max {
+	padding-top: 0;
+}
+
+.icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-below:has(.rounded-circle) .inner,
+.listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-below:has(.rounded-circle):has(.img-max) .inner {
+	padding-top: var(--base-spacing);
+}
+
+.icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-above .inner,
+.listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-above:has(.img-max) .inner {
+	padding-bottom: var(--base-spacing);
+}
+
+html[dir="ltr"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.text-left .image, 
+html[dir="ltr"] .listing:not(.listing_window-mosaic) .item.item_has-bg.text-left .image.img-max,
+html[dir="ltr"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-right .image,
+html[dir="ltr"] .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-right .image.img-max {
+    margin-left:var(--base-spacing)!important;
+}
+
+html[dir="ltr"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.text-right .image, 
+html[dir="ltr"] .listing:not(.listing_window-mosaic) .item.item_has-bg.text-right .image.img-max,
+html[dir="ltr"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-left .image,
+html[dir="ltr"] .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-left .image.img-max {
+    margin-right:var(--base-spacing)!important;
+}
+
+html[dir="rtl"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.text-left .image,
+html[dir="rtl"] .listing:not(.listing_window-mosaic) .item.item_has-bg.text-left .image.img-max,
+html[dir="rtl"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-right .image,
+html[dir="rtl"] .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-right .image.img-max {
+	margin-right: var(--base-spacing)!important;
+}
+
+html[dir="rtl"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.text-right .image,
+html[dir="rtl"] .listing:not(.listing_window-mosaic) .item.item_has-bg.text-right .image.img-max,
+html[dir="rtl"] .icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-left .image,
+html[dir="rtl"] .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-left .image.img-max {
+	margin-left: var(--base-spacing)!important;
+}
+
+/* Icon images — remove padding from info div if there is a background color selected and an icon image used */
+/*.icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg .image + .info, 
+.listing:not(.listing_window-mosaic) .item.item_has-bg .image.img-max + .info {
+    padding-top:0;
+}*/
+
+/*
+.item.item_text-boxed .inner,
+.item.item_text-boxed .inner > a { 
+    height:100%;
+}
+*/
+
+.item.item_text-boxed .info {
+    padding: var(--base-spacing);
+    max-width:560px;
+}
+
+.item.item_text-boxed.text-center .info { 
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.item.item_text-boxed.text-right .info { 
+    margin-left:auto;
+}
+
+.listing .item.item_text-boxed .image + .info {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 2;
+}
+
+/* Align top */
+.listing .item.item_text-boxed .image + .info.align-self-start {
+    top: 0;
+}
+
+/* Align middle */
+.listing .item.item_text-boxed .image + .info.align-self-center {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Align bottom */
+.listing .item.item_text-boxed .image + .info.align-self-end {
+    top: auto;
+    bottom: 0;
+}
+
+.listing .item.item_text-boxed .image + .info:not(.align-self-start):not(.align-self-center):not(.align-self-end) {
+    top: auto;
+    bottom: 0;
+}
+
+
+/* Overlay item with button and text reveal on hover */
+
+/* Intitial state */
+html.no-touch .item.item_text-boxed.item_hover-reveal a .image + .info .text, 
+html.no-touch .item.item_text-boxed.item_hover-reveal a .image + .info .link {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out 0s;
+}
+
+/* Hover state */
+html.no-touch .item.item_text-boxed.item_hover-reveal a:hover .image + .info .text, 
+html.no-touch .item.item_text-boxed.item_hover-reveal a:hover .image + .info .link,
+html.no-touch .item.item_text-boxed.item_hover-reveal a:focus .image + .info .text, 
+html.no-touch .item.item_text-boxed.item_hover-reveal a:focus .image + .info .link,
+html.no-touch .item.item_text-boxed.item_hover-reveal a:active .image + .info .text, 
+html.no-touch .item.item_text-boxed.item_hover-reveal a:active .image + .info .link {
+    opacity: 1;
+    max-height: 300px;
+    overflow: visible;
+}
+
+/* Focus within */
+html.no-touch .item.item_text-boxed.item_hover-reveal a:focus-within .image + .info .text, 
+html.no-touch .item.item_text-boxed.item_hover-reveal a:focus-within .image + .info .link {
+    opacity: 1;
+    max-height: 300px;
+    overflow: visible;
+}
+
+
+/* Overlay item with image reveal on hover */
+
+/* Intitial state */
+html.no-touch .item.item_text-boxed.item_hover-reveal_image .image::before { 
+    display: none;
+}
+html.no-touch .item.item_text-boxed.item_hover-reveal_image a .image {
+    opacity: 0;
+    transition: all 0.3s ease-in-out 0s;
+}
+
+/* Hover state */
+html.no-touch .item.item_text-boxed.item_hover-reveal_image a:hover .image, 
+html.no-touch .item.item_text-boxed.item_hover-reveal_image a:focus .image, 
+html.no-touch .item.item_text-boxed.item_hover-reveal_image a:active .image {
+    opacity: 1;
+}
+
+/* Focus within */
+html.no-touch .item.item_text-boxed.item_hover-reveal_image a:focus-within .image {
+    opacity: 1;
+}
+
+
+/* Overlay item with hide image on hover */
+
+/* Intitial state */
+html.no-touch .item.item_text-boxed.item_hover-hide_image a .image {
+    opacity: 1;
+    transition: all 0.3s ease-in-out 0s;
+}
+
+/* Hover state */
+html.no-touch .item.item_text-boxed.item_hover-hide_image a:hover .image, 
+html.no-touch .item.item_text-boxed.item_hover-hide_image a:focus .image, 
+html.no-touch .item.item_text-boxed.item_hover-hide_image a:active .image {
+    opacity: 0;
+}
+
+/* Focus within */
+html.no-touch .item.item_text-boxed.item_hover-hide_image a:focus-within .image {
+    opacity: 0;
+}
+
+@media (min-width:0) and (max-width:575px) {}
+
+@media (min-width:576px) and (max-width:991px) { }
+
+@media (min-width:768px) { }
+
+@media (min-width:992px) { 
+
+    .listing.listing_search-results { 
+        margin-top:var(--base-spacing);
+        margin-bottom:var(--base-spacing);
+    }
+
+}
+
+@media (min-width:1200px) {}
+
+
+/*  
+---------------------------------------------------
+LISTING - Standard Layout
+---------------------------------------------------  
+*/
+
+/*
+.listing.listing_basic-grid {}*/
+
+/*
+.listing.listing_basic-grid .item {}*/
+
+.item.item_text-below:not(.item_has-bg) .image,
+.item.item_text-left:not(.item_has-bg) .image,
+.item.item_text-right:not(.item_has-bg) .image {
+    margin-bottom: var(--base-half-spacing);
+}
+
+.item.item_text-above:not(.item_has-bg) .image {
+    margin-top: var(--base-half-spacing);
+}
+
+.item.item_text-below.item_has-bg .info,
+.item.item_text-left.item_has-bg .info,
+.item.item_text-right.item_has-bg .info,
+.item.item_text-above.item_has-bg .info {
+    padding: var(--base-spacing);
+}
+
+.item.item_text-left .image,
+.item.item_text-right .image { 
+    align-self: flex-start;
+}
+
+.icon-images .item.item_text-left .image:not(.img-max),
+.icon-images .item.item_text-right .image:not(.img-max) {
+    max-width: 50px;
+}
+
+@media (min-width:0) and (max-width:575px) {}
+
+@media (min-width:768px) {
+
+    .item.item_text-above:not(.item_has-bg) .image {
+        margin-top: var(--base-half-spacing);
+    }
+    .item.item_text-below:not(.item_has-bg) .image {
+        margin-bottom: var(--base-half-spacing);
+    }
+
+	.item.item_text-left:has(.image),
+	.item.item_text-right:has(.image),
+	.item.item_text-left:has(.image) .inner,
+	.item.item_text-right:has(.image) .inner,
+	.item.item_text-left:has(.image) .inner > a:not(.btn),
+	.item.item_text-right:has(.image) .inner > a:not(.btn) {
+		display: flex;
+		flex-direction: row-reverse;
+        justify-content:space-between;
+	}
+    .item.item_text-left:has(.image) .inner,
+    .item.item_text-right:has(.image) .inner,
+    .item.item_text-left:has(.image) .inner > a:not(.btn),
+    .item.item_text-right:has(.image) .inner > a:not(.btn) { 
+        width:100%;
+    }
+	.item.item_text-right:has(.image),
+	.item.item_text-right:has(.image) .inner,
+	.item.item_text-right:has(.image) .inner > a:not(.btn) {
+		flex-direction: row;
+        justify-content:flex-start;
+	}
+    
+    .item.item_text-left .image,
+    .item.item_text-right .image {
+        flex: 0 0 40%;
+        max-width: 40%; 
+        margin: 0!important;
+    }
+    .icon-images .item.item_text-left .image,
+    .icon-images .item.item_text-right .image { 
+        flex: 0 0 10%;
+    }
+    .icon-images .item.item_text-left .image:not(.img-max),
+    .icon-images .item.item_text-right .image:not(.img-max) {
+        max-width: 10%;
+    }
+
+	.icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-left .image,
+	.listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-left .image.img-max,
+	.icon-images .listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-right .image,
+	.listing:not(.listing_window-mosaic) .item.item_has-bg.item_text-right .image.img-max {
+		margin-bottom: var(--base-spacing) !important;
+	}
+    
+    /* Blog items - text left, text right */
+    .item.item-blog.item_text-right:has(.image) .inner,
+    .item.item-blog.item_text-left:has(.image) .inner {
+        padding-bottom: calc(60px + (var(--base-spacing) * 2));
+    }
+    .item.item-blog.item_text-right:not(.item_has-bg):has(.image) .inner,
+    .item.item-blog.item_text-left:not(.item_has-bg):has(.image) .inner {
+        padding-bottom: calc(var(--base-spacing) * 3);
+    }
+
+	html[dir="ltr"] .item.item-blog.item_text-right:not(.item_has-bg):has(.image) .image + .info {
+		padding-left: var(--base-spacing);
+	}
+	html[dir="ltr"] .item.item-blog.item_text-left:not(.item_has-bg):has(.image) .image + .info {
+		padding-right: var(--base-spacing);
+	}
+	html[dir="rtl"] .item.item-blog.item_text-right:not(.item_has-bg):has(.image) .image + .info {
+		padding-right: var(--base-spacing);
+	}
+	html[dir="rtl"] .item.item-blog.item_text-left:not(.item_has-bg):has(.image) .image + .info {
+		padding-left: var(--base-spacing);
+	}
+
+    /* Non blog items - text left, text right */
+    .item.item_text-right:not(.item_has-bg):not(.item-blog) .info {
+        padding: 0 0 var(--base-spacing) 0;
+    }
+    .item.item_text-left:not(.item_has-bg):not(.item-blog) .info {
+        padding: 0 0 var(--base-spacing) 0;
+    }
+
+	html[dir="ltr"] .item.item_text-right:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-bottom: var(--base-spacing);
+		padding-left: var(--base-half-spacing);
+	}
+	html[dir="ltr"] .item.item_text-left:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-right: var(--base-half-spacing);
+		padding-bottom: var(--base-spacing);
+	}
+	html[dir="ltr"] .icon-images .item.item_text-right:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-bottom: var(--base-spacing);
+		padding-left: var(--base-half-spacing);
+	}
+	html[dir="ltr"] .icon-images .item.item_text-left:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-right: var(--base-half-spacing);
+		padding-bottom: var(--base-spacing);
+	}
+
+	html[dir="rtl"] .item.item_text-right:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-bottom: var(--base-spacing);
+		padding-right: var(--base-half-spacing);
+	}
+	html[dir="rtl"] .item.item_text-left:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-left: var(--base-half-spacing);
+		padding-bottom: var(--base-spacing);
+	}
+	html[dir="rtl"] .icon-images .item.item_text-right:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-bottom: var(--base-spacing);
+		padding-right: var(--base-half-spacing);
+	}
+	html[dir="rtl"] .icon-images .item.item_text-left:not(.item_has-bg):not(.item-blog):has(.image) .image + .info {
+		padding-left: var(--base-half-spacing);
+		padding-bottom: var(--base-spacing);
+	}
+    
+}
+
+/*  
+---------------------------------------------------
+Listing Short
+---------------------------------------------------  
+*/
+
+/*
+.listing.listing_short { }*/
+
+/*
+.listing.listing_short .item.item_text-only { }*/

@@ -1,0 +1,14 @@
+<License>
+  <Id>672f8c8b-b399-45a0-b0a0-4caac8c4c8ed</Id>
+  <Type>Standard</Type>
+  <ProductFeatures>
+    <Feature name="Product">uSkinned Site Builder</Feature>
+    <Feature name="Creation Date">20250807</Feature>
+    <Feature name="Domains">qedubaisportscity.com,qe-dubai-app-service.azurewebsites.net,staging.qedubaisportscity.com,staff.qedubaisportscity.com</Feature>
+  </ProductFeatures>
+  <Customer>
+    <Name>GES GLOBAL EDU SERVICES  LIMITED</Name>
+    <Email>apps@gedu.global</Email>
+  </Customer>
+  <Signature>MEUCIG1okXqwr3cct4zMsHwnUIS/WvqDqkrVBk2SRmFJG51mAiEAstVQrb8BBMUflRCVrSpB+hMJY/M7iZoRNf9J3GRh7ZM=</Signature>
+</License>

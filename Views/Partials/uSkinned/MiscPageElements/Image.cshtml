@@ -1,0 +1,80 @@
+﻿@inherits UmbracoViewPage<IPublishedContent>
+@using USNSiteBuilder.Core.Models
+@using USNSiteBuilder.Core.Extensions
+@using Microsoft.Extensions.Options
+@using USNSiteBuilder.Core.Interfaces
+@inject IOptions<USNAppSettings> _appSettings
+@inject ISiteBuilderService _siteBuilderService
+@{
+    ImageSettings imageSettings = (ImageSettings)ViewData["imageSettings"];
+    string themeFolder = ViewData["themeFolder"].ToString();
+
+    if (Model != null && Model.Url().IsNotNullOrEmpty())
+    {
+        string currentCulture = System.Threading.Thread.CurrentThread.CurrentCulture.Name;
+        int imageWidth = imageSettings.Width;
+        int imageHeight = imageSettings.Height;
+        int byteLimit = _appSettings.Value.FrontEndImageSizeLimitBytes;
+
+        if (Model.Value<string>("umbracoExtension") != "svg" && Model.Value<int>("umbracoBytes") <= byteLimit)
+        {
+            string smallImage = String.Empty;
+            string displayImageX1 = String.Empty;
+            string displayImageX2 = String.Empty;
+            bool webPEnabled = _appSettings.Value.WebPEnabled && !Model.Value<bool>("disableWebPConversion");
+            int imageQuality = Model.HasValue("imageQuality") ? Model.Value<int>("imageQuality") : 75;
+
+            if (imageSettings.CropAlias == "NO CROP")
+            {
+                imageWidth = Model.Value<int>("umbracoWidth");
+                imageHeight = Model.Value<int>("umbracoHeight");
+                smallImage = Model.Url() + "?width=" + (imageWidth / 10) + "&height=" + (imageHeight / 10);
+                displayImageX1 = Model.Url() + "?width=" + (imageWidth / 2) + "&height=" + (imageHeight / 2);
+                displayImageX2 = Model.Url() + "?width=" + imageWidth + "&height=" + imageHeight;
+            }
+            else if (imageSettings.BoxPad)
+            {
+                smallImage = Model.Url() + "?width=" + (imageWidth / 10) + "&height=" + (imageHeight / 10) + "&rmode=boxpad";
+                displayImageX1 = Model.Url() + "?width=" + (imageWidth / 2) + "&height=" + (imageHeight / 2) + "&rmode=boxpad";
+                displayImageX2 = Model.Url() + "?width=" + imageWidth + "&height=" + imageHeight + "&rmode=boxpad";
+            }
+            else
+            {
+                smallImage = Model.GetCropUrl(cropAlias: imageSettings.CropAlias, width: (imageWidth / 10), height: (imageHeight / 10));
+                displayImageX1 = Model.GetCropUrl(cropAlias: imageSettings.CropAlias, width: (imageWidth / 2), height: (imageHeight / 2));
+                displayImageX2 = Model.GetCropUrl(cropAlias: imageSettings.CropAlias, width: imageWidth, height: imageHeight);
+            }
+
+            @if (webPEnabled)
+            {
+            <picture>
+                <source type="image/webp" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x" width="@(imageWidth / 2)" height="@(imageHeight / 2)">
+                <img class="lazyload @imageSettings.CircleClass" src="@(smallImage)&format=webp&quality=@(imageQuality)" data-srcset="@(displayImageX1)&format=webp&quality=@(imageQuality) 1x, @(displayImageX2)&format=webp&quality=@(imageQuality) 2x" width="@(imageWidth / 2)" height="@(imageHeight / 2)" alt="@(_siteBuilderService.GetAlternativeText(Model.HasValue("alternativeText") ? Model.Value<string>("alternativeText") : String.Empty, currentCulture))">
+            </picture>
+            }
+            else 
+            {
+            <picture>
+                <source data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x" width="@(imageWidth / 2)" height="@(imageHeight / 2)">
+                <img class="lazyload @imageSettings.CircleClass" src="@(smallImage)&quality=@(imageQuality)" data-srcset="@(displayImageX1)&quality=@(imageQuality) 1x, @(displayImageX2)&quality=@(imageQuality) 2x" width="@(imageWidth / 2)" height="@(imageHeight / 2)" alt="@(_siteBuilderService.GetAlternativeText(Model.HasValue("alternativeText") ? Model.Value<string>("alternativeText") : String.Empty,currentCulture))">
+            </picture>
+            }
+        }
+        else if (Model.Value<string>("umbracoExtension") != "svg" && Model.Value<int>("umbracoBytes") > byteLimit)
+        {
+            if (imageSettings.CropAlias == "NO CROP")
+            {
+                imageWidth = Model.Value<int>("umbracoWidth");
+                imageHeight = Model.Value<int>("umbracoHeight");
+            }
+
+            <div class="image-error" data-error-title="@Umbraco.GetDictionaryValue("USN Image Size Error")">
+                <img class="@imageSettings.CircleClass image-error" src="/images/@themeFolder/grey.gif" width="@(imageWidth)" height="@(imageHeight)" alt="@(_siteBuilderService.GetAlternativeText(Model.HasValue("alternativeText") ? Model.Value<string>("alternativeText") : String.Empty,currentCulture))">
+            </div>
+        }
+        else
+        {
+            <img class="lazyload" src="@Model.Url()" alt="@(Model.Value<string>("alternativeText"))">
+        }
+    }
+}

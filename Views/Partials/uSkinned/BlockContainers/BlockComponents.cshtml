@@ -1,0 +1,99 @@
+@inherits UmbracoViewPage<SiteBuilderBaseViewModel>
+@using USNSiteBuilder.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks 
+@using USNSiteBuilder.Core.Interfaces
+
+@inject ISiteBuilderPreviewService _siteBuilderPreviewService
+@{
+    Usnstyle websiteStyle = (Usnstyle)Model.WebsiteStyle;
+    string breakPoint = websiteStyle.StyleSpacing.headerBreakpoint.ToString();
+
+    string blockFieldAlias = ViewData["blockFieldAlias"]?.ToString() ?? string.Empty;
+    string pageLayout = ViewData["pageLayout"]?.ToString() ?? string.Empty;
+
+    //Clear view data before calling next partial
+    ViewData.Clear();
+
+    int blockListCount = 0;
+    int currentBlockIndex = 0;
+
+    //BlockFieldAlias must be set in the parent view
+    if (!string.IsNullOrEmpty(blockFieldAlias))
+    {
+        var blockPreviewInfo = _siteBuilderPreviewService.GetBlockPreviewInfo();
+
+        var blockList = Model.Value<BlockListModel>(blockFieldAlias);
+
+        blockListCount = blockList?.Count() ?? 0;
+
+        //This will add a new block if the block list is empty.
+        if (blockPreviewInfo.PreviewMode && blockListCount == 0 && blockPreviewInfo.ContentField == blockFieldAlias)
+        {
+            await OutputPreviewBlock(pageLayout, breakPoint);
+        }
+
+        if (blockList.Any())
+        {
+            foreach (var component in blockList)
+            {
+                if (component?.ContentUdi != null)
+                {
+                    //Replace a block being edited with its preview version
+                    if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == blockFieldAlias && blockPreviewInfo.ContentUdi == component.ContentUdi.ToString())
+                    {
+                        await OutputPreviewBlock(pageLayout, breakPoint);
+                    }
+                    //Insert a new block before a current block
+                    else if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == blockFieldAlias && blockPreviewInfo.ContentUdi != component.ContentUdi.ToString() && blockPreviewInfo.ContentIndex == currentBlockIndex)
+                    {
+                        await OutputPreviewBlock(pageLayout, breakPoint);
+                        if (!component.Settings.Value<bool>("hideFromWebsite"))
+                        {
+                        var pageComponent = new SiteBuilderBlock(Model, component, pageLayout);
+                        @await Html.PartialAsync(Model.ThemeFolder + "/BlockContainers/ComponentSection", pageComponent)
+                        }
+                    }
+                    else
+                    {
+                        if (!component.Settings.Value<bool>("hideFromWebsite"))
+                        {
+                            var pageComponent = new SiteBuilderBlock(Model, component, pageLayout);
+                            @await Html.PartialAsync(Model.ThemeFolder + "/BlockContainers/ComponentSection", pageComponent)
+                        }
+                    }
+
+                }
+
+                currentBlockIndex++;
+            }
+        }
+
+        if (blockPreviewInfo.PreviewMode && blockPreviewInfo.ContentField == blockFieldAlias && blockListCount > 0 && blockPreviewInfo.ContentIndex > blockListCount - 1)
+        {
+            await OutputPreviewBlock(pageLayout, breakPoint);
+        }
+    }
+}
+
+@functions
+{
+    private async Task OutputPreviewBlock(string pageLayout, string breakpoint)
+    {
+        var previewBlock = _siteBuilderPreviewService.GetPreviewBlock(Model, pageLayout);
+
+        if (previewBlock != null)
+        {
+            @Html.Raw(_siteBuilderPreviewService.GetPreviewAnchor(previewBlock.BlockContent.Key.ToString("N"), breakpoint))
+
+            if (!previewBlock.BlockSettings.Value<bool>("hideFromWebsite"))
+            {
+                @await Html.PartialAsync(Model.ThemeFolder + "/BlockContainers/ComponentSection", previewBlock)
+            }
+        }
+        else{
+            @Html.Raw(_siteBuilderPreviewService.GetErrorMessage())
+        }
+    }
+}
+
+
