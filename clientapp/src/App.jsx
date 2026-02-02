@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import Menu from './menu';
 import { getPage } from './lib/umbracoFetch';
 import { useLocation } from 'react-router';
 import Blocks from './Blocks';
@@ -7,6 +6,8 @@ import { useDispatch } from 'react-redux';
 import { fetchLayoutData } from './redux/layoutSlice';
 import Footer from './footer';
 import { useSelector } from 'react-redux';
+import Navigation from './Blocks/Global Blocks/Navigation';
+import ApplyDesign from './Blocks/Global Blocks/Design';
 
 function App() {
   const [pageData, setPageData] = useState(null);
@@ -89,6 +90,7 @@ function App() {
   }, [pageData]);
 
   const { styleData } = useSelector((state) => state.layout);
+
   useEffect(() => {
     if (!styleData) return;
 
@@ -127,8 +129,8 @@ function App() {
   }, [pageData]);
 
   return <>
-
-    <Menu></Menu>
+    <ApplyDesign></ApplyDesign>
+    <Navigation data={pageData?.properties?.navigation}></Navigation>
 
     {loading
 

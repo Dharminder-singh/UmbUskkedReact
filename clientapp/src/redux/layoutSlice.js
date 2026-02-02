@@ -7,9 +7,8 @@ export const fetchLayoutData = createAsyncThunk(
   async () => {
     const data = await getPagenav("global");
     const logo = data?.properties?.logo ?? null;
-    const navigation = data?.properties?.navigation?.items ?? [];
-    const style = data?.properties?.styling ?? null;
-
+    const navigation = await getPagenav("navigation");
+    const design = await getPagenav("test");
 
     const footer = {
       footerItems: data?.properties?.footerItems ?? null,
@@ -22,7 +21,7 @@ export const fetchLayoutData = createAsyncThunk(
         logo,
       navigation,
       footer,
-      style
+      design
     };
   }
 );
@@ -31,9 +30,9 @@ const layoutSlice = createSlice({
   name: "layout",
   initialState: {
     loading: false,
-    headerData: null,
+    navigation: null,
     footerData: null,
-    styleData: null,
+    design: null,
     logo: null,
     error: null
   },
@@ -49,10 +48,10 @@ const layoutSlice = createSlice({
 
       .addCase(fetchLayoutData.fulfilled, (state, action) => {
         state.loading = false;
-        state.headerData = action.payload.navigation;
+        state.navigation = action.payload.navigation;
         state.footerData = action.payload.footer;
         state.logo = action.payload.logo;
-        state.styleData = action.payload.style;
+        state.design = action.payload.design;
       })
 
       .addCase(fetchLayoutData.rejected, (state, action) => {
